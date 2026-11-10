@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>桌上剧团 · 谁是几号（预览）</title>
+  <style>
+/* ==========================================================================
+   桌上剧团 · 谁是几号（热座版）  v3
+   四位演员的形与色（取自壁纸实测）：
+     芙宁娜    白蓝发 · 抱鲁特琴   → 水蓝珠光 + 琴弦竖纹 + 舞台顶光
+     哥伦比娅  黑紫发 · 掌中红丝带 → 梅紫绒面 + 丝带飘带曲线
+     桑多涅    灰棕短发 · 指尖子弹 → 黄铜 + 铆钉圆点 + 暗酒红
+     沃雅妮莎  蓝绿长发 · 抱竖琴   → 青绿弦光 + 竖琴弦阵
+
+   底座：深梅紫剧院内景 + 暖木舞台地板 + 上下酒红丝绒幕；
+   纸面：珍珠节目单 + 黄铜细线 + 四角藤蔓。
+   纯 CSS / 内联 SVG，不引字体、不引框架、不引图片。
+   ========================================================================== */
+
+:root {
+  /* 剧院内景 */
+  --stage-0: #0a0610;
+  --stage-1: #170f1f;
+  --stage-2: #231a2c;
+  --stage-3: #32253a;
+
+  /* 暖木舞台地板（芙宁娜那帧的暖木） */
+  --wood-1: #3d1e09;
+  --wood-2: #4a240a;
+  --wood-3: #5c3316;
+
+  /* 珍珠纸 / 瓷白 */
+  --pearl-0: #fffdf9;
+  --pearl-1: #f7f1e9;
+  --pearl-2: #f4ece6;
+  --pearl-3: #dcd2cc;
+  --porcelain: #e3e5da;
+
+  /* 墨与字 */
+  --ink: #2a2130;
+  --ink-soft: #5b4d60;
+  --ink-faint: #7d6f82;
+  --text: #f3ebf2;
+  --text-dim: #bcacc0;
+
+  /* 四位演员主色 */
+  --hydro: #82d8ee;      /* 芙宁娜 */
+  --hydro-deep: #3f93b0;
+  --plum: #bda2bf;       /* 哥伦比娅 */
+  --plum-deep: #733f56;
+  --ribbon: #c0505f;     /* 哥伦比娅的红丝带 */
+  --brass: #c9a067;      /* 桑多涅 */
+  --brass-deep: #8a6a2f;
+  --olive: #b8bd66;      /* 沃雅妮莎 */
+  --harp: #7fb6a8;       /* 沃雅妮莎的青绿 */
+  --velvet: #7d2233;
+  --gold: #dcbb72;
+  --gold-light: #f6e5b8;
+
+  /* 当前幕主色 */
+  --mood: 130, 216, 238;
+  --radius: 7px;
+
+  --font-display: "Noto Serif SC", "Source Han Serif SC", "华文中宋", "SimSun", "Songti SC", Georgia, serif;
+  --font-body: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.68;
+  color: var(--text);
+  background-color: var(--stage-0);
+  background-image:
+    radial-gradient(1200px 620px at 50% -16%, rgba(var(--mood), 0.22), transparent 64%),
+    radial-gradient(880px 600px at 4% 104%, rgba(115, 63, 86, 0.38), transparent 68%),
+    radial-gradient(700px 420px at 98% 102%, rgba(201, 160, 103, 0.16), transparent 70%),
+    linear-gradient(180deg, #1c1324 0%, #150e1c 42%, #251505 76%, #140a04 100%);
+  background-attachment: fixed;
+  transition: background-image 900ms ease;
+}
+
+/* --------------------------------------------------------------------------
+   氛围层
+   -------------------------------------------------------------------------- */
+.atmosphere { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+
+/* 舞台顶光 + 桌面反光 */
+.atmosphere__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(42% 30% at 50% -2%, rgba(var(--mood), 0.24), transparent 72%),
+    radial-gradient(76% 22% at 50% 100%, rgba(255, 214, 150, 0.14), transparent 72%);
+  transition: background 900ms ease;
+}
+
+/* 丝绒织纹 */
+.atmosphere__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background-image:
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(28deg, rgba(0, 0, 0, 0.10) 0 1px, transparent 1px 7px);
+}
+
+/* 舞台木地板：只在底部出现，带透视感的板缝 */
+.atmosphere__floor {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+  height: 34vh;
+  background-image:
+    linear-gradient(180deg, rgba(10, 6, 4, 0) 0%, rgba(30, 15, 5, 0.55) 62%, rgba(20, 10, 4, 0.85) 100%),
+    repeating-linear-gradient(90deg,
+      rgba(0, 0, 0, 0.30) 0 1px,
+      rgba(120, 74, 30, 0.10) 1px 4px,
+      rgba(0, 0, 0, 0.06) 4px 78px);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 38%, #000);
+  mask-image: linear-gradient(180deg, transparent, #000 38%, #000);
+  opacity: 0.9;
+}
+
+/* 上下酒红丝绒幕 + 金流苏 */
+.curtain {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(0, 0, 0, 0.44) 0 14px,
+      rgba(255, 196, 176, 0.10) 14px 27px),
+    linear-gradient(180deg, #852438, #46101c);
+  box-shadow: 0 1px 0 rgba(220, 187, 114, 0.8);
+}
+.curtain--top { top: 0; }
+.curtain--bottom { bottom: 0; transform: scaleY(-1); }
+.curtain--top::after,
+.curtain--bottom::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 13px;
+  background: radial-gradient(13px 13px at 13px 0, #63182a 0 96%, transparent 100%) 0 0 / 26px 13px repeat-x;
+}
+
+/* --------------------------------------------------------------------------
+   外壳
+   -------------------------------------------------------------------------- */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 52px 20px 68px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.brand { display: flex; align-items: center; gap: 15px; }
+
+/* 珍珠徽：水蓝球面 + 金环 */
+.brand-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: #1d3038;
+  background:
+    radial-gradient(circle at 34% 26%, #ffffff 0%, #e2f7fd 24%, var(--hydro) 56%, #37809b 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset,
+    0 0 0 3px rgba(220, 187, 114, 0.9),
+    0 0 0 5px rgba(10, 6, 14, 0.7),
+    0 0 30px rgba(130, 216, 238, 0.5),
+    0 14px 22px -14px #000;
+}
+/* 琴弦：两道细竖线压在珍珠球上（芙宁娜的鲁特琴） */
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background-image:
+    linear-gradient(90deg, transparent 44%, rgba(29, 48, 56, 0.35) 44% 47%, transparent 47%),
+    linear-gradient(90deg, transparent 56%, rgba(29, 48, 56, 0.22) 56% 59%, transparent 59%);
+}
+
+.brand-text h1 {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  line-height: 1.12;
+  -webkit-text-stroke: 0.6px rgba(255, 246, 214, 0.45);
+  background: linear-gradient(178deg, #ffffff 4%, var(--gold-light) 42%, var(--gold) 74%, #a2823c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6)) drop-shadow(0 0 20px rgba(var(--mood), 0.4));
+}
+/* 标题下的丝带细线（哥伦比娅） */
+.brand-text h1::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 24px;
+  bottom: -7px;
+  height: 6px;
+  background: no-repeat left center/auto 100% var(--ribbon-line);
+  opacity: 0.9;
+}
+
+.brand-sub {
+  margin: 12px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+.brand-sub::before {
+  content: "";
+  width: 26px;
+  height: 7px;
+  background: no-repeat center/contain var(--lute);
+  opacity: 0.9;
+  filter: drop-shadow(0 0 6px rgba(var(--mood), 0.6));
+}
+
+.conn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 7px 15px;
+  border-radius: 999px;
+  color: var(--text-dim);
+  background: linear-gradient(180deg, rgba(50, 37, 58, 0.95), rgba(18, 12, 24, 0.95));
+  border: 1px solid rgba(201, 160, 103, 0.45);
+  white-space: nowrap;
+}
+.conn::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7a6b7d;
+}
+.conn[data-state="open"] { color: var(--hydro); border-color: rgba(130, 216, 238, 0.55); }
+.conn[data-state="open"]::before { background: var(--hydro); box-shadow: 0 0 9px var(--hydro); }
+.conn[data-state="closed"] { color: #e78a9a; border-color: rgba(231, 138, 154, 0.55); }
+.conn[data-state="closed"]::before { background: #e78a9a; }
+.conn[data-state="connecting"]::before { animation: blink 1.4s ease-in-out infinite; }
+
+@keyframes blink { 50% { opacity: 0.25; } }
+
+/* 四人徽记：鲁特琴 / 丝带 / 子弹 / 竖琴 */
+.crest {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 10px;
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 187, 114, 0.26);
+  background: rgba(18, 12, 24, 0.45);
+}
+.crest__i {
+  position: relative;
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 0 4px currentColor);
+  opacity: 0.74;
+}
+.crest__i svg { width: 100%; height: 100%; display: block; }
+.crest__i + .crest__i::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: rgba(220, 187, 114, 0.6);
+}
+.crest__i[data-c="hydro"] { color: var(--hydro); }
+.crest__i[data-c="plum"] { color: var(--ribbon); }
+.crest__i[data-c="brass"] { color: var(--brass); }
+.crest__i[data-c="olive"] { color: var(--harp); }
+@media (max-width: 860px) { .crest { display: none; } }
+
+/* --------------------------------------------------------------------------
+   视图 / 珍珠节目单卡片
+   -------------------------------------------------------------------------- */
+.view { display: flex; flex-direction: column; gap: 18px; }
+.hidden { display: none !important; }
+
+.card {
+  position: relative;
+  padding: 24px 26px 26px;
+  color: var(--ink);
+  border-radius: var(--radius);
+  border: 1px solid rgba(201, 160, 103, 0.55);
+  background-image:
+    radial-gradient(120% 86% at 14% -14%, #ffffff 0%, rgba(255, 255, 255, 0) 56%),
+    repeating-linear-gradient(101deg, rgba(140, 120, 130, 0.015) 0 1px, transparent 1px 4px),
+    linear-gradient(168deg, var(--pearl-0) 0%, var(--pearl-1) 54%, var(--pearl-2) 100%);
+  box-shadow:
+    0 0 0 2px rgba(220, 187, 114, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.7) inset,
+    0 -46px 64px -46px rgba(120, 90, 60, 0.2) inset,
+    0 30px 54px -30px rgba(0, 0, 0, 0.95),
+    0 0 46px -24px rgba(var(--mood), 0.5);
+  animation: cardIn 420ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 内黄铜线 */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(176, 132, 66, 0.32);
+  pointer-events: none;
+}
+/* 四角黄铜藤蔓 + 顶部铆钉 */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  background-image: var(--filigree), var(--filigree), var(--filigree), var(--filigree);
+  background-repeat: no-repeat;
+  background-position: left top, right top, left bottom, right bottom;
+  background-size: 28px 28px;
+  opacity: 0.42;
+}
+
+.card.muted {
+  color: var(--ink-faint);
+  text-align: center;
+  font-family: var(--font-display);
+  letter-spacing: 1px;
+}
+
+/* 黄铜标签旗（桑多涅） */
+.card__rubric {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: -4px 0 14px;
+  padding: 3px 13px 4px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #fffaf0;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #9c7538, #553d17);
+  border: 1px solid #e0c489;
+  box-shadow:
+    0 0 0 1px rgba(255, 244, 214, 0.4) inset,
+    0 2px 0 rgba(0, 0, 0, 0.3);
+}
+.card__rubric::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff6dc;
+  box-shadow: 0 0 0 1px rgba(90, 60, 20, 0.55) inset;
+}
+
+.card-title {
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #3d2f48;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.card-title::before {
+  content: "◆";
+  font-size: 8px;
+  color: var(--brass);
+}
+
+.sub-title {
+  margin: 22px 0 11px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #6a5a70;
+}
+.sub-title::before { content: "◇ "; color: var(--brass); }
+
+/* --------------------------------------------------------------------------
+   表单
+   -------------------------------------------------------------------------- */
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field > span { font-size: 12px; letter-spacing: 1px; color: #6a5a70; }
+.field.grow { flex: 1; }
+
+input, select, textarea {
+  font: inherit;
+  width: 100%;
+  color: var(--ink);
+  padding: 11px 13px;
+  border-radius: 5px;
+  border: 1px solid rgba(140, 116, 96, 0.5);
+  background: linear-gradient(180deg, #fffefb, #f7f1ea);
+  box-shadow: 0 1px 3px rgba(60, 40, 60, 0.10) inset;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+input::placeholder, textarea::placeholder { color: #6a5a70; opacity: 1; }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 3px rgba(var(--mood), 0.3),
+    0 1px 3px rgba(60, 40, 60, 0.1) inset;
+}
+textarea { resize: vertical; min-height: 80px; }
+select { cursor: pointer; }
+
+/* --------------------------------------------------------------------------
+   按钮
+   -------------------------------------------------------------------------- */
+.btn {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  padding: 11px 21px;
+  border-radius: 4px;
+  color: #3b2f45;
+  border: 1px solid rgba(150, 116, 66, 0.72);
+  background: linear-gradient(180deg, #fdf8f1, #eee2d4);
+  box-shadow: 0 1px 2px rgba(60, 40, 60, 0.14);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+.btn:hover:not(:disabled) {
+  border-color: rgba(176, 132, 66, 0.9);
+  box-shadow: 0 0 0 3px rgba(var(--mood), 0.16);
+}
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.15); }
+
+/* 主按钮：芙宁娜的水蓝，扁平珠光（不加高光块 / 不加 3D 底边） */
+.btn.primary {
+  color: #10333d;
+  border: 1px solid rgba(63, 147, 176, 0.7);
+  background: linear-gradient(180deg, #eefdff 0%, #c6eaf6 58%, #a8dcec 100%);
+  box-shadow: 0 1px 2px rgba(20, 60, 70, 0.18);
+  text-shadow: none;
+}
+.btn.primary:hover:not(:disabled) {
+  border-color: rgba(63, 147, 176, 0.95);
+  box-shadow: 0 0 0 3px rgba(var(--mood), 0.22), 0 0 18px -6px rgba(var(--mood), 0.9);
+}
+
+.btn.ghost {
+  color: #6a5a70;
+  background: transparent;
+  border-color: rgba(176, 132, 66, 0.45);
+  box-shadow: none;
+}
+
+.entry-actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 20px 0;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--ink-faint);
+}
+.divider::before, .divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(176, 132, 66, 0.75), transparent);
+}
+
+.join-row { display: flex; gap: 10px; align-items: flex-end; }
+
+.hint { margin: 11px 0 0; font-size: 13px; color: #6b5c6e; min-height: 1.2em; }
+.hint.error { color: #ae352f; }
+.hint.ok { color: #4a7442; }
+
+.rules { margin: 0; padding-left: 4px; font-size: 14px; color: #3d3147; list-style: none; counter-reset: rule; }
+.rules li {
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: 10px;
+  counter-increment: rule;
+}
+/* 序号用黄铜小圆牌 + 竖琴弦 */
+.rules li::before {
+  content: counter(rule);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #5c4420;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6df, #e6cfa2 70%, #c9a067);
+  box-shadow: 0 0 0 1px rgba(140, 106, 34, 0.55), 0 1px 2px rgba(60, 40, 20, 0.35);
+}
+.rules b { color: var(--brass-deep); }
+
+/* --------------------------------------------------------------------------
+   等待室
+   -------------------------------------------------------------------------- */
+.room-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
+
+.label { margin: 0; font-size: 11px; letter-spacing: 1.5px; color: #6f6172; }
+
+.room-code {
+  margin: 5px 0 0;
+  font-family: var(--font-mono);
+  font-size: 34px;
+  letter-spacing: 9px;
+  color: #7a5a25;
+  text-shadow: 0 1px 0 #fff;
+}
+
+.room-me { margin: 5px 0 0; font-family: var(--font-display); font-size: 19px; letter-spacing: 1px; color: #3d3147; }
+
+.player-list { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.player-list.compact { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+
+/* 票根 */
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  font-size: 14px;
+  color: #33283c;
+  border-radius: 5px;
+  border: 1px solid rgba(176, 132, 66, 0.5);
+  border-left: 3px double var(--brass);
+  background: linear-gradient(180deg, #fffefa, #f2eae2);
+  box-shadow: 0 1px 0 #fff inset, 0 3px 8px -5px rgba(60, 34, 60, 0.5);
+}
+.player-item .who { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.5px; }
+.player-item .tag {
+  font-size: 11px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(176, 132, 66, 0.6);
+  color: #7a5f2c;
+  background: rgba(255, 250, 240, 0.9);
+}
+.player-item .tag.self { border-color: rgba(63, 147, 176, 0.6); color: #2f7188; }
+.player-item .tag.cool { border-color: rgba(176, 58, 52, 0.5); color: #ae352f; }
+.player-item .tag.off { border-color: rgba(140, 130, 140, 0.5); color: var(--ink-faint); text-decoration: line-through; }
+
+.config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 13px; }
+.row-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+/* --------------------------------------------------------------------------
+   游戏视图头
+   -------------------------------------------------------------------------- */
+.game-head { display: flex; flex-direction: column; gap: 11px; }
+.pill-group {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(96px, 138px));
+  gap: 8px;
+}
+@media (max-width: 720px) {
+  .pill-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.stat {
+  position: relative;
+  min-width: 96px;
+  padding: 10px 17px 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(201, 160, 103, 0.5);
+  background:
+    radial-gradient(130% 100% at 20% 0%, rgba(var(--mood), 0.2), transparent 64%),
+    linear-gradient(180deg, #332644, #150e1b);
+  box-shadow:
+    0 0 0 1px rgba(255, 246, 224, 0.13) inset,
+    0 10px 22px -18px #000;
+}
+.stat .label { color: #a897ac; }
+.stat-value {
+  margin: 3px 0 0;
+  font-family: var(--font-display);
+  font-size: 21px;
+  letter-spacing: 1px;
+  color: #f8f0da;
+}
+.stat-value.mono { font-family: var(--font-mono); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+
+/* 我的编号：珍珠 + 水蓝光晕 + 竖纹琴弦 */
+.stat--seat {
+  border-color: rgba(220, 187, 114, 0.95);
+  background-image:
+    var(--strings),
+    radial-gradient(130% 100% at 25% 0%, rgba(255, 255, 255, 0.2), transparent 62%),
+    linear-gradient(180deg, #3d2d4a, #191121);
+  background-size: auto, auto, auto;
+  background-repeat: repeat, no-repeat, no-repeat;
+}
+.stat-value.accent {
+  color: #f0fdff;
+  text-shadow:
+    0 0 16px rgba(130, 216, 238, 0.95),
+    0 0 38px rgba(130, 216, 238, 0.5);
+}
+
+#phase-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  line-height: 1.35;
+  max-width: 152px;
+}
+
+.motif {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  color: rgba(var(--mood), 0.95);
+  filter: drop-shadow(0 0 7px rgba(var(--mood), 0.6));
+}
+.motif svg { width: 100%; height: 100%; display: block; }
+
+.phase-hint {
+  margin: 0;
+  padding: 10px 15px;
+  font-size: 13px;
+  color: var(--text-dim);
+  border-radius: 4px;
+  border-left: 2px solid rgba(var(--mood), 0.9);
+  background:
+    linear-gradient(90deg, rgba(var(--mood), 0.14), rgba(var(--mood), 0.02) 62%, transparent),
+    rgba(20, 13, 26, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   主体两栏
+   -------------------------------------------------------------------------- */
+.game-body { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; align-items: start; }
+@media (max-width: 900px) { .game-body { grid-template-columns: 1fr; } }
+
+/* 看板：丝绒牌位 + 黄铜铆钉 + 珍珠数字 */
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 14px; }
+
+.board-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 13px 14px;
+  border-radius: 5px;
+  border: 1px solid rgba(176, 132, 66, 0.5);
+  background:
+    radial-gradient(120% 90% at 50% -12%, rgba(var(--mood), 0.22), transparent 64%),
+    linear-gradient(180deg, #fbf6ee, #efe5da);
+  box-shadow:
+    0 1px 0 #fff inset,
+    0 2px 6px -4px rgba(70, 45, 30, 0.4);
+}
+/* 牌位顶沿的一道金线，像节目单上的小标题栏 */
+.board-cell::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(201, 160, 103, 0.9), transparent);
+}
+.board-cell .no {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #7d5520;
+}
+.board-cell select { padding: 7px 9px; font-size: 13px; }
+
+/* 公开问答：珍珠账簿（左侧装订线 + 丝带夹） */
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 9px 9px 9px 16px;
+  max-height: 296px;
+  overflow-y: auto;
+  border-radius: 5px;
+  border: 1px solid rgba(176, 132, 66, 0.4);
+  border-left: 3px solid rgba(192, 80, 95, 0.55);
+  background:
+    linear-gradient(90deg, rgba(192, 80, 95, 0.10), transparent 14px),
+    linear-gradient(180deg, #fffdfa, #f6efe6);
+  box-shadow: 0 1px 4px rgba(60, 40, 60, 0.13) inset;
+}
+.feed li {
+  padding: 7px 10px 8px 12px;
+  font-size: 14px;
+  color: #3a2f42;
+  border-left: 2px solid rgba(176, 132, 66, 0.45);
+  border-bottom: 1px dashed rgba(176, 132, 66, 0.45);
+}
+.feed li:last-child { border-bottom: none; }
+.feed li .meta { font-size: 11px; letter-spacing: 0.5px; color: #6b5c70; }
+.feed li.pending { border-left-color: rgba(201, 160, 103, 0.9); background: rgba(201, 160, 103, 0.12); }
+.feed li.answered { border-left-color: #5f8a5a; }
+
+.action-panel { display: flex; flex-direction: column; gap: 13px; }
+
+.action-block {
+  padding: 14px 16px;
+  border-radius: 5px;
+  border: 1px solid rgba(176, 132, 66, 0.3);
+  border-left: 2px solid rgba(201, 160, 103, 0.85);
+  background: rgba(255, 254, 250, 0.75);
+}
+.action-block h4 {
+  margin: 0 0 9px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  color: #3d3147;
+}
+.action-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.action-block .feed { max-height: 240px; }
+
+/* --------------------------------------------------------------------------
+   谢幕
+   -------------------------------------------------------------------------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 26px;
+  background:
+    radial-gradient(56% 44% at 50% 24%, rgba(var(--mood), 0.24), transparent 74%),
+    rgba(6, 4, 10, 0.88);
+  backdrop-filter: blur(3px);
+}
+.overlay::before,
+.overlay::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 44px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.46) 0 16px, rgba(255, 196, 176, 0.1) 16px 31px),
+    linear-gradient(180deg, #852438, #46101c);
+  box-shadow: 0 1px 0 rgba(220, 187, 114, 0.75);
+}
+.overlay::before { top: 0; border-radius: 0 0 6px 6px; }
+.overlay::after { bottom: 0; border-radius: 6px 6px 0 0; }
+
+.overlay-card { width: 100%; max-width: 520px; animation: sealIn 520ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both; }
+
+@keyframes sealIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+
+.board-reveal { display: flex; flex-direction: column; gap: 8px; margin: 14px 0 18px; }
+.board-reveal div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 15px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: #f8f0da;
+  border-radius: 4px;
+  border: 1px solid rgba(201, 160, 103, 0.5);
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(var(--mood), 0.2), transparent 66%),
+    linear-gradient(180deg, #362746, #170f1e);
+}
+.board-reveal div span:first-child { color: var(--hydro); font-family: var(--font-mono); }
+
+/* --------------------------------------------------------------------------
+   四幕主色：芙宁娜 / 哥伦比娅 / 桑多涅 / 沃雅妮莎
+   -------------------------------------------------------------------------- */
+body[data-phase="PHASE1"] { --mood: 130, 216, 238; }  /* 芙宁娜 · 水蓝 */
+body[data-phase="PHASE2"] { --mood: 189, 162, 191; }  /* 哥伦比娅 · 梅紫 */
+body[data-phase="PHASE3"] { --mood: 201, 160, 103; }  /* 桑多涅 · 黄铜 */
+body[data-phase="OVER"]   { --mood: 184, 189, 102; }  /* 沃雅妮莎 · 橄榄金 */
+
+/* --------------------------------------------------------------------------
+   响应式 / 无障碍
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .app { padding: 44px 14px 60px; }
+  .brand h1 { font-size: 24px; letter-spacing: 4px; }
+  .brand-mark { width: 42px; height: 42px; }
+  .room-code { font-size: 27px; letter-spacing: 6px; }
+  .stat { min-width: 92px; padding: 8px 13px 10px; }
+  .stat-value { font-size: 18px; }
+  #phase-name { font-size: 13px; max-width: 128px; }
+  .card { padding: 18px 16px 20px; }
+  .card::after { background-size: 18px 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+::selection { background: rgba(130, 216, 238, 0.35); color: #17242a; }
+
+.feed::-webkit-scrollbar { width: 9px; }
+.feed::-webkit-scrollbar-track { background: rgba(176, 132, 66, 0.12); border-radius: 5px; }
+.feed::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--brass), #8a6a2f); border-radius: 5px; }
+
+/* --------------------------------------------------------------------------
+   内联 SVG 资源
+   -------------------------------------------------------------------------- */
+:root {
+  /* 四角黄铜藤蔓 */
+  --filigree: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M1 23V7.5Q1 1 7.5 1H23' fill='none' stroke='%23b08442' stroke-width='.9'/%3E%3Cpath d='M5 23V10Q5 5 10 5H23' fill='none' stroke='%23c9a067' stroke-width='.6' opacity='.8'/%3E%3Ccircle cx='2.8' cy='2.8' r='1.4' fill='%23dcbb72'/%3E%3C/svg%3E");
+  /* 琴弦竖纹（鲁特琴 / 竖琴共用，极淡） */
+  --strings: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='10'%3E%3Cpath d='M1 0v10M5.5 0v10' stroke='%23ffffff' stroke-opacity='.11' stroke-width='.7'/%3E%3C/svg%3E");
+  /* 丝带细线（标题下的飘带） */
+  --ribbon-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='6'%3E%3Cpath d='M2 4.2c14-3.4 28-3.4 42 0s28 3.4 42 0 22-2.6 32-.8' fill='none' stroke='%23c0505f' stroke-width='1.1' stroke-linecap='round' opacity='.85'/%3E%3C/svg%3E");
+  /* 鲁特琴（芙宁娜） */
+  --lute: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2382d8ee' stroke-width='1.1' stroke-linecap='round'%3E%3Cellipse cx='5.6' cy='10.4' rx='3.2' ry='2.9'/%3E%3Cpath d='M8.2 8.1 13.4 2.6'/%3E%3Cpath d='M4.4 10.4h2.4M4.4 8.9h2.4'/%3E%3C/svg%3E");
+}
+
+/* 看板卡底部：节目单尾花（补足左栏留白） */
+.board-foot {
+  position: relative;
+  margin-top: 18px;
+  height: 22px;
+  background-image:
+    linear-gradient(90deg, transparent, rgba(176, 132, 66, 0.55), transparent),
+    var(--strings);
+  background-repeat: no-repeat, repeat;
+  background-position: center, center;
+  background-size: 100% 1px, 9px 10px;
+  opacity: 0.55;
+}
+.board-foot::after {
+  content: "◆";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 10px;
+  font-size: 8px;
+  color: var(--brass);
+  background: linear-gradient(180deg, var(--pearl-0), var(--pearl-1));
+}
+
+</style>
+</head>
+<body data-phase="PHASE1">
+  <div class="atmosphere" aria-hidden="true">
+    <div class="atmosphere__glow"></div>
+    <div class="atmosphere__grain"></div>
+    <div class="curtain curtain--top"></div>
+    <div class="curtain curtain--bottom"></div>
+  </div>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">✦</span>
+        <div class="brand-text">
+          <h1>桌上剧团</h1>
+          <p class="brand-sub">谁是几号 · 热座版</p>
+        </div>
+      </div>
+            <div class="crest" aria-hidden="true" title="四位演员">
+        <span class="crest__i" data-c="hydro"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="5.4" cy="10.6" rx="3.5" ry="3.1"/><path d="M8.3 8.2 13.6 2.4" stroke-width="1.5"/><path d="M2.6 11.6h3.2M3.1 9.9h2.7"/></svg></span>
+        <span class="crest__i" data-c="plum"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 8 2.4 5.2v5.6L6.6 8z"/><path d="M9.4 8l4.2-2.8v5.6L9.4 8z"/><circle cx="8" cy="8" r="1.3"/><path d="M7.3 9.3 5.9 14M8.7 9.3l1.4 4.7"/></svg></span>
+        <span class="crest__i" data-c="brass"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2c1.5 1.5 1.5 4 0 6-1.5-2-1.5-4.5 0-6z"/><path d="M6.4 9.1h3.2v4.5H6.4z"/><path d="M6.4 11.3h3.2"/></svg></span>
+        <span class="crest__i" data-c="olive"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M3.7 2.4c7 0 8.9 4.6 8.9 11.2"/><path d="M3.7 2.4v11.2h8.9"/><path d="M5.9 4.3v9.3M8 5.3v8.3M10.1 7.3v6.3"/></svg></span>
+      </div>
+      <div class="conn" id="conn-pill" data-state="open">已连接</div>
+    </header>
+
+    <section class="view" id="view-game">
+      <div class="game-head">
+        <div class="pill-group">
+          <div class="stat stat--seat">
+            <p class="label">我的编号</p>
+            <p class="stat-value accent">2</p>
+          </div>
+          <div class="stat">
+            <p class="label">幕次</p>
+            <p class="stat-value" id="phase-name">
+              <span class="motif"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="5.4" cy="10.6" rx="3.5" ry="3.1"/><path d="M8.3 8.2 13.6 2.4" stroke-width="1.5"/><path d="M2.6 11.6h3.2M3.1 9.9h2.7"/></svg></span>
+              <span>第一幕 · 讯问</span>
+            </p>
+          </div>
+          <div class="stat"><p class="label">轮次</p><p class="stat-value">3</p></div>
+          <div class="stat"><p class="label">沙漏</p><p class="stat-value mono">42s</p></div>
+        </div>
+        <p class="hint phase-hint">第一幕：每轮一次机会 —— 讯问某人 / 呈上看板 / 略过。看板全对即刻谢幕，答错则冷却 3 轮。</p>
+      </div>
+
+      <div class="game-body">
+        <div class="card board-card">
+          <div class="card__rubric"><span>推理看板</span></div>
+          <h2 class="card-title">编号 → 真人</h2>
+          <div class="board">
+            <div class="board-cell"><span class="no">#1</span>
+              <select><option value="">—</option><option>阿墨</option><option selected>小北</option></select></div>
+            <div class="board-cell"><span class="no">#2</span>
+              <select><option value="">—</option><option selected>阿墨</option><option>小北</option></select></div>
+            <div class="board-cell"><span class="no">#3</span>
+              <select><option value="">—</option><option>阿墨</option><option>小北</option><option>林恩</option></select></div>
+            <div class="board-cell"><span class="no">#4</span>
+              <select><option value="">—</option><option>阿墨</option><option>小北</option><option>林恩</option></select></div>
+          </div>
+          <div class="row-actions">
+            <button class="btn">记入草稿</button>
+            <button class="btn primary">呈上看板</button>
+          </div>
+          <p class="hint"></p>
+        </div>
+
+        <div class="card action-card">
+          <div class="card__rubric"><span>本幕行事</span></div>
+          <h2 class="card-title">这一轮</h2>
+          <div class="action-panel">
+            <div class="action-block">
+              <h4>讯问</h4>
+              <div class="action-row">
+                <label class="field" style="max-width:120px"><span>问几号</span>
+                  <select><option>#3</option><option>#1</option><option>#4</option></select></label>
+                <label class="field grow"><span>问题</span>
+                  <input placeholder="问一件只有那位才知道的事" /></label>
+                <button class="btn">讯问他</button>
+              </div>
+              <p class="hint">讯问会公开给所有人；每轮只有一次机会。</p>
+            </div>
+            <div class="action-block">
+              <h4>或者</h4>
+              <button class="btn ghost">略过本轮</button>
+            </div>
+          </div>
+
+          <h3 class="sub-title">公开问答</h3>
+          <ul class="feed">
+            <li class="pending"><div class="meta">林恩 → 你</div><div>昨天排练到几点？</div></li>
+            <li class="answered"><div class="meta">你 回答</div><div>过了子时，戏服都没来得及换。</div></li>
+            <li class="pending"><div class="meta">阿墨 → 林恩</div><div>你最喜欢剧团里哪一段戏？</div></li>
+            <li class="answered"><div class="meta">阿墨 超时未答</div><div>（TIMEOUT）</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card players-card">
+        <div class="card__rubric"><span>剧团名册</span></div>
+        <ul class="player-list compact">
+          <li class="player-item"><span class="who">阿墨</span><span class="tag">队长</span><span class="tag self">你</span></li>
+          <li class="player-item"><span class="who">小北</span><span class="tag">已行动</span></li>
+          <li class="player-item"><span class="who">林恩</span><span class="tag cool">冷却 2</span></li>
+          <li class="player-item"><span class="who">苏禾</span><span class="tag off">掉线</span></li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

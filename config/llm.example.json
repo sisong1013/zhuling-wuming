@@ -1,0 +1,6 @@
+{
+  "apiKey": "在这里填 key",
+  "baseUrl": "https://wb2api.264133.xyz/v1",
+  "model": "cn:deepseek-v4.1-flash",
+  "fallbacks": []
+}

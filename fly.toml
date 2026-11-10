@@ -1,0 +1,39 @@
+# Fly.io 配置：单机单进程（内存态房间，不能横向扩）
+app = "zhuling-wuming"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  AI_DEBUG = "0"
+  PORT = "8000"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  # 免费额度下希望空闲就停：false 会一直计费
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  # 关键：WebSocket 升级请求必须放行，不能只按 HTTP 健康检查挡
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 200
+    soft_limit = 150
+
+[[http_service.checks]]
+  # 给足冷启动时间，避免 fly 判死重启
+  grace_period = "20s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  # 空闲停机需要至少 1 台 standby 才不会被立刻杀掉；0 表示允许缩到 0
+  count = 0

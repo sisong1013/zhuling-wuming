@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="诸伶无名">
+  <defs>
+    <radialGradient id="velvet" cx="38%" cy="26%" r="82%">
+      <stop offset="0" stop-color="#7a1f30"/>
+      <stop offset="62%" stop-color="#4d101c"/>
+      <stop offset="100%" stop-color="#24060d"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6e3b4"/>
+      <stop offset="52%" stop-color="#d9b56b"/>
+      <stop offset="100%" stop-color="#a9822f"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="32" cy="32" r="31" fill="url(#velvet)"/>
+  <circle cx="32" cy="32" r="30" fill="none" stroke="url(#gold)" stroke-width="1.6"/>
+  <circle cx="32" cy="32" r="25.5" fill="none" stroke="#d9b56b" stroke-opacity=".5" stroke-width=".8"/>
+
+  <!-- 幕布上沿的三道褶 -->
+  <path d="M4 11c6 4 10 4 16 0s10-4 16 0 10 4 16 0" fill="none" stroke="#ffd6a8" stroke-opacity=".35" stroke-width="1.2"/>
+
+  <!-- 中央：伶（无名之伶） -->
+  <text x="32" y="43" text-anchor="middle"
+        font-family="Noto Serif SC, Source Han Serif SC, SimSun, Georgia, serif"
+        font-size="27" font-weight="700" fill="url(#gold)">伶</text>
+
+  <!-- 底部一点金线，像舞台台唇 -->
+  <path d="M17 50h30" stroke="url(#gold)" stroke-width="1.2" stroke-linecap="round" stroke-opacity=".85"/>
+</svg>

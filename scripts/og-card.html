@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #0b0710;
+        font-family: "Noto Serif SC", "Source Han Serif SC", "SimSun", Georgia, serif;
+      }
+      .stage {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        background:
+          radial-gradient(46% 40% at 50% 0%, rgba(201, 160, 68, 0.22), transparent 70%),
+          radial-gradient(80% 30% at 50% 104%, rgba(255, 206, 140, 0.12), transparent 76%),
+          linear-gradient(180deg, #1a1223 0%, #120b18 46%, #221306 82%, #0f0704 100%);
+        overflow: hidden;
+      }
+      /* 顶部幕布 */
+      .curtain {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 54px;
+        background:
+          radial-gradient(30px 150px at 50% 0, rgba(255, 214, 196, 0.06), transparent 80%),
+          radial-gradient(30px 150px at 50% 0, rgba(0, 0, 0, 0.62), transparent 84%),
+          linear-gradient(180deg, #5c1624, #3d0c17 58%, #25050c);
+        background-size: 60px 100%, 60px 100%, auto;
+        background-position: 0 0, 30px 0, 0 0;
+        border-bottom: 1px solid rgba(217, 181, 107, 0.85);
+        box-shadow: 0 0 20px rgba(217, 181, 107, 0.25);
+      }
+      .curtain::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 14px;
+        background: radial-gradient(14px 14px at 14px 0, rgba(77, 16, 28, 0.98) 0 94%, transparent 100%)
+          0 0/28px 14px repeat-x;
+      }
+      /* 金色角花 */
+      .corner {
+        position: absolute;
+        width: 64px;
+        height: 64px;
+        border: 1.5px solid rgba(169, 130, 47, 0.75);
+      }
+      .c1 {
+        left: 34px;
+        top: 100px;
+        border-right: none;
+        border-bottom: none;
+      }
+      .c2 {
+        right: 34px;
+        top: 100px;
+        border-left: none;
+        border-bottom: none;
+      }
+      .c3 {
+        left: 34px;
+        bottom: 96px;
+        border-right: none;
+        border-top: none;
+      }
+      .c4 {
+        right: 34px;
+        bottom: 96px;
+        border-left: none;
+        border-top: none;
+      }
+
+      .content {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 120px;
+        text-align: center;
+      }
+      .seal {
+        width: 84px;
+        height: 84px;
+        margin: 0 auto 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 38px;
+        color: #2a2114;
+        background: radial-gradient(circle at 36% 26%, #fff, #f2dfae 34%, #d9b56b 66%, #a9822f);
+        box-shadow:
+          0 0 0 2px rgba(255, 244, 214, 0.55),
+          0 0 44px rgba(217, 181, 107, 0.55);
+      }
+      h1 {
+        font-size: 82px;
+        font-weight: 900;
+        letter-spacing: 16px;
+        line-height: 1.06;
+        background: linear-gradient(178deg, #fffdf6 6%, #f2dfae 42%, #d9b56b 74%, #a2823c);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6));
+      }
+      .sub {
+        margin-top: 20px;
+        font-size: 34px;
+        letter-spacing: 14px;
+        color: #e8d7b4;
+        opacity: 0.95;
+      }
+      .latin {
+        margin-top: 14px;
+        font-family: Georgia, serif;
+        font-size: 13px;
+        letter-spacing: 8px;
+        color: rgba(203, 178, 127, 0.7);
+      }
+      .rule {
+        width: 520px;
+        height: 1px;
+        margin: 26px auto 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(217, 181, 107, 0.9),
+          transparent
+        );
+      }
+      .tags {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 132px;
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+      }
+      .tag {
+        padding: 7px 16px;
+        border-radius: 99px;
+        font-size: 17px;
+        letter-spacing: 3px;
+        color: #f0e5d0;
+        border: 1px solid rgba(217, 181, 107, 0.5);
+        background: rgba(255, 246, 224, 0.07);
+      }
+      .tag b {
+        color: #f2dfae;
+      }
+      .hint {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 88px;
+        text-align: center;
+        font-size: 16px;
+        letter-spacing: 4px;
+        color: rgba(232, 222, 236, 0.95);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="curtain"></div>
+      <div class="corner c1"></div>
+      <div class="corner c2"></div>
+      <div class="corner c3"></div>
+      <div class="corner c4"></div>
+
+      <div class="content">
+        <div class="seal">伶</div>
+        <h1>诸伶无名</h1>
+        <div class="sub">桌上剧团</div>
+        <div class="latin">THE NAMELESS TROUPE</div>
+        <div class="rule"></div>
+      </div>
+
+      <div class="tags">
+        <span class="tag">编号 <b>·</b> 身份</span>
+        <span class="tag">三幕讯问</span>
+        <span class="tag">猜真人 <b>/</b> 人设卡</span>
+        <span class="tag">AI 陪演</span>
+      </div>
+      <div class="hint">全员只有编号 —— 猜出谁是谁，或谁拿到了哪张卡</div>
+    </div>
+  </body>
+</html>

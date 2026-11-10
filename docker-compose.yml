@@ -1,0 +1,28 @@
+services:
+  stage:
+    build: .
+    image: zhuoshang-stage:latest
+    container_name: zhuoshang-stage
+    ports:
+      - "8000:8000"
+    # .env 不存在也能起（AI 走兜底）；存在就自动读取 LLM 配置
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # 想在生产打开 /debug/ai（含 AI 的 Prompt 留痕），把这里改成 "1"
+      AI_DEBUG: "0"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys;sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz',timeout=3).status==200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # 单实例：房间状态在内存里，不能横向扩多副本（要扩得先把注册表外置）
+    deploy:
+      replicas: 1

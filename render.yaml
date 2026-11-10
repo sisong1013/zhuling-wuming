@@ -1,0 +1,24 @@
+# Render Blueprint：Docker 部署，单实例（内存态房间）
+# 用法：Render 控制台 → New → Blueprint → 选这个仓库，它会读本文件
+services:
+  - type: web
+    name: zhuling-wuming
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter # 免费档会休眠；想 7x24 就换 starter
+    region: singapore
+    healthCheckPath: /healthz
+    numInstances: 1 # 必须 1：房间状态在内存里
+    autoDeploy: true
+    envVars:
+      - key: AI_DEBUG
+        value: "0"
+      # 下面三个留空也能跑（AI 走离线兜底），想开真模型就在这里填
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        value: https://wb2api.264133.xyz/v1
+      - key: LLM_MODEL
+        value: cn:deepseek-v4.1-flash
+      - key: LLM_MAX_TOKENS
+        value: "2400"

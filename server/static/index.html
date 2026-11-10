@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d0812" />
+    <title>桌上剧团 · 诸伶无名</title>
+    <meta name="game-name" content="诸伶无名" />
+    <meta name="game-slug" content="zhuling-wuming" />
+    <meta
+      name="description"
+      content="桌上剧团 · 诸伶无名 —— 一台关于编号与身份的社会推理游戏：三幕讯问、两种玩法（猜真人 / 人设卡），还有 AI 陪演与赛后复盘。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="桌上剧团 · 诸伶无名" />
+    <meta property="og:title" content="桌上剧团 · 诸伶无名" />
+    <meta
+      property="og:description"
+      content="全员只有编号 —— 猜出谁是谁，或谁拿到了哪张卡。三幕讯问、AI 陪演、赛后复盘。"
+    />
+    <meta property="og:image" content="__OG_BASE__/static/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="__OG_BASE__/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="桌上剧团 · 诸伶无名" />
+    <meta
+      name="twitter:description"
+      content="全员只有编号 —— 猜出谁是谁，或谁拿到了哪张卡。"
+    />
+    <meta name="twitter:image" content="__OG_BASE__/static/og.png" />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+    <link rel="apple-touch-icon" href="/static/favicon.svg" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/style.v4.css" />
+  </head>
+  <body data-phase="LOBBY">
+    <!-- 舞台背景：幕布 + 顶光 + 木地板 -->
+    <div class="stage" id="stage" aria-hidden="true">
+      <div class="stage__glow"></div>
+      <div class="stage__floor"></div>
+      <div class="stage__curtain stage__curtain--top"></div>
+      <div class="stage__curtain stage__curtain--bottom"></div>
+    </div>
+
+    <div class="app">
+      <header class="topbar">
+      <div class="brand">
+        <span class="brand__seal">✦</span>
+        <div>
+          <h1>桌上剧团</h1>
+          <p class="brand__sub">诸伶无名</p>
+          <p class="brand__latin">THE NAMELESS TROUPE</p>
+        </div>
+      </div>
+      <div class="topbar__actions">
+        <span class="conn" id="conn" data-state="off">连接中…</span>
+        <button class="btn ghost small" id="btn-open-board" aria-expanded="false" aria-controls="board">
+          观众板
+        </button>
+        <button class="btn ghost small" id="btn-leave">离开</button>
+      </div>
+    </header>
+
+    <section class="hud glass" id="hud" aria-label="对局状态" hidden>
+      <div class="stat">
+        <p class="label">我的编号</p>
+        <p class="stat-value accent" id="my-no">—</p>
+      </div>
+      <div class="stat">
+        <p class="label">幕次</p>
+        <p class="stat-value" id="phase-name">—</p>
+      </div>
+      <div class="stat">
+        <p class="label">轮次</p>
+        <p class="stat-value" id="round-no">—</p>
+      </div>
+      <div class="stat timer" id="timer"></div>
+    </section>
+
+    <main class="layout">
+      <div class="view-slot" id="view"></div>
+      <aside class="side glass" id="side" hidden>
+        <h3 class="sub-title">公开问答</h3>
+        <ul class="feed" id="feed"></ul>
+        <h3 class="sub-title">剧团名册</h3>
+        <ul class="player-list compact" id="roster"></ul>
+      </aside>
+    </main>
+
+    <!-- 观众板抽屉 -->
+    <aside class="drawer glass" id="board" hidden aria-label="观众板"></aside>
+
+      <div class="toast-wrap" id="toasts" aria-live="polite"></div>
+    </div>
+
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

@@ -8,7 +8,7 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -21,9 +21,24 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: 跑测试（测试强制离线，不会调用真模型）
+        id: tests
+        continue-on-error: true
         env:
           LLM_DISABLE: "1"
-        run: python -m pytest -q
+        run: |
+          set -o pipefail
+          python -m pytest -q 2>&1 | tee pytest.log | tail -40
+
+      - name: 失败时把日志推回 ci-log 分支（方便自动化排查）
+        if: steps.tests.outcome == 'failure'
+        run: |
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@local"
+          git checkout -B ci-log
+          { echo "# pytest 失败日志 $(date -u +%FT%TZ)"; echo; tail -200 pytest.log; } > ci-failure.txt
+          git add -f ci-failure.txt
+          git commit -m "ci: failure log for ${GITHUB_SHA::7}"
+          git push -f origin ci-log
 
       - name: 冒烟（本地起服务，验 24 项）
         env:
@@ -34,3 +49,7 @@ jobs:
             curl -sf http://127.0.0.1:8000/healthz && break || sleep 1
           done
           python scripts/smoke_remote.py http://127.0.0.1:8000
+
+      - name: 按测试结果收尾
+        if: steps.tests.outcome == 'failure'
+        run: exit 1

@@ -79,18 +79,62 @@ fly scale count 1
 预期：`fly deploy` 结束会打印 `Visit your newly deployed app at https://xxx.fly.dev`；
 冒烟脚本最后一行打印 `🎭 这台机器可以发给朋友玩了`。
 
-### 2.2 路线 B：Railway（最省事）
+### 2.2 路线 B：Railway（你选的这条）
+
+#### 第 0 步：把 `game/` 推到 GitHub
+
+仓库已经在 `game/` 里 `git init` 过了（**仓库根目录就是 `game/`**，Railway 直接认根目录的 `Dockerfile`）。
+`.env` 和 `config/llm.json`（含你的 key）已被 `.gitignore` 挡住，**不会上传**。
+
+任选一种认证方式，然后一条命令推送：
+
+```powershell
+# 方式一：浏览器登录一次（推荐，之后一直有效）
+gh auth login          # 选 GitHub.com → HTTPS → Login with a web browser
+cd D:\工作区\长期任务\game
+powershell -ExecutionPolicy Bypass -File scripts\push_github.ps1
+```
+
+```powershell
+# 方式二：用现成的 PAT（classic 勾 repo；fine-grained 勾 Contents: write）
+$env:GITHUB_TOKEN="ghp_xxx"
+cd D:\工作区\长期任务\game
+powershell -ExecutionPolicy Bypass -File scripts\push_github.ps1 -RepoName zhuling-wuming
+```
+
+```powershell
+# 方式三：自己在网页上建好空仓库，直接挂远端推
+cd D:\工作区\长期任务\game
+git remote add origin https://github.com/你/仓库.git
+git branch -M main
+git push -u origin main
+```
+
+`scripts\push_github.ps1` 做的事：建仓库（或挂远端）→ 提交 → 推到 `main` → 打印下一步提示。
+想建私有仓库加 `-Private`；仓库名被占用就换 `-RepoName 别的名字`。
+
+#### 第 1 步：Railway 接仓库
 
 1. 打开 https://railway.app → **Login with GitHub**
-2. **New Project → Deploy from GitHub repo** → 选这个仓库
-   （先把 `game/` 目录推到一个 GitHub 仓库：`git init && git add . && git commit && git push`）
-3. Railway 会自动读 `railway.json`（Dockerfile 构建、`/healthz` 健康检查）
-4. **Variables** 里加：`LLM_API_KEY`（其余三个可留空/填默认）
-   `AI_DEBUG` 不用加，默认就是 0
-5. **Settings → Networking → Generate Domain** 拿到公网地址
-6. 自检：`python scripts\smoke_remote.py https://你的域名`
+2. **New Project → Deploy from GitHub repo** → 选刚推的仓库
+3. Railway 自动读 `railway.json`：Dockerfile 构建、`/healthz` 健康检查、单副本
+4. **Variables** 里加（**别把 key 提交进仓库，只放这里**）：
 
-⚠️ Railway 里确认 **Replicas = 1**（多副本会分裂房间）。
+   ```
+   LLM_API_KEY=sk-你的key
+   LLM_BASE_URL=https://wb2api.264133.xyz/v1
+   LLM_MODEL=cn:deepseek-v4.1-flash
+   LLM_MAX_TOKENS=2400
+   ```
+
+   `AI_DEBUG` 不用加（镜像里默认 `0`）。
+5. **Settings → Networking → Generate Domain** 拿到 `https://xxx.up.railway.app`
+6. 自检：`python scripts\smoke_remote.py https://xxx.up.railway.app` → 必须 24/24
+
+⚠️ **Settings 里确认 Replicas = 1**：多副本 = 两个世界，玩家互相看不见。
+⚠️ Railway 免费额度按用量算，**不会自动停**：玩完点 Stop，或给项目设 sleep。
+⚠️ `.github/workflows/ci.yml` 已配好：推上去会自动跑 244 条测试 + 24 项冒烟，
+   仓库页面绿勾 = "可以部署"。
 
 ### 2.3 路线 C：Render（有免费档）
 

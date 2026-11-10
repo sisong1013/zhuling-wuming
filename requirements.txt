@@ -2,3 +2,5 @@
 fastapi>=0.110
 uvicorn[standard]>=0.27
 python-dotenv>=1.0.0
+# LLM 调用（server/llm_client.py 直接 import）
+httpx>=0.27

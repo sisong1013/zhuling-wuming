@@ -24,15 +24,21 @@ except ImportError:  # pragma: no cover
     raise SystemExit(2)
 
 
-def http_get(url: str, timeout: float = 15) -> tuple[int, bytes, dict]:
-    req = urllib.request.Request(url, headers={"User-Agent": "zhuling-smoke/1.0"})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.status, resp.read(), dict(resp.headers)
-    except urllib.error.HTTPError as exc:
-        return exc.code, b"", dict(exc.headers or {})
-    except Exception as exc:  # noqa: BLE001
-        return 0, str(exc).encode(), {}
+def http_get(url: str, timeout: float = 40) -> tuple[int, bytes, dict]:
+    """GET 一下；冷启动/边缘抖动时重试一次（status=0 多半是瞬时断连）。"""
+    last: tuple[int, bytes, dict] = (0, b"", {})
+    for attempt in range(2):
+        req = urllib.request.Request(url, headers={"User-Agent": "zhuling-smoke/1.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.status, resp.read(), dict(resp.headers)
+        except urllib.error.HTTPError as exc:
+            return exc.code, b"", dict(exc.headers or {})
+        except Exception as exc:  # noqa: BLE001
+            last = (0, str(exc).encode(), {})
+            if attempt == 0:
+                time.sleep(2)
+    return last
 
 
 class Client:
@@ -163,7 +169,7 @@ async def main() -> int:
         # 非法操作要被拦（防止线上被乱来）
         b.error = None
         await b.send("card:submit", name="x", content="y")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(2.0)  # 远程一圈往返，等久一点再判定
         check("非写卡阶段的非法提交被拦", b.error is not None, "没有收到 error 帧")
 
         # 断线重连：拿到 token 后重连

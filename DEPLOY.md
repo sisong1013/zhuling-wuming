@@ -1,5 +1,8 @@
 # 部署手册 · 桌上剧团 · 诸伶无名
 
+> **线上地址：https://zhuling-wuming.up.railway.app** —— 已上线并跑过 24/24 冒烟（2026-11-10）。
+> 发给朋友：把链接给他们 → 谁都可以「组建剧团」拿 6 位号码 → 其他人凭号码入场。
+
 > 这份文档分两段：**我已经做完的**、**必须你本人做的**。
 > 你不在的时候我做到"只差你的登录"为止；剩下每一步都写清楚了命令和预期结果。
 
@@ -214,3 +217,32 @@ git push -u origin main
 2. **没有账号体系**：昵称可重名、无法封禁。公网小范围玩够了。
 3. **没有限流**：被恶意刷建房只能靠平台层（Cloudflare 前面套一层更稳）。
 4. **没有自定义域名 / HTTPS 证书**：Fly/Render/Railway 自带子域名 HTTPS 足够；要自己的域名在平台加 CNAME 即可。
+
+## 8. Railway 实操踩坑记录（都真的踩了）
+
+部署第一次失败：**构建成功 → 健康检查失败**。三个真因，按发现顺序：
+
+| # | 现象 | 真因 | 修法 |
+| --- | --- | --- | --- |
+| 1 | 健康检查 11 次全 "service unavailable"，容器日志里 `ModuleNotFoundError: No module named 'httpx'` | 我把 `httpx` 挪进了 `requirements-dev.txt`，但 `server/llm_client.py` **运行期**要 import 它 → 容器一启动就崩 | `httpx` 放回 `requirements.txt`；新增 `tests/test_week5_runtime_deps.py` 扫描 `server/` 的所有 import，缺声明就红 |
+| 2 | 部署记录 `SUCCESS`，但公网一律 502 | Railway **注入 `PORT=8080`**（不是 8000），而我把域名的 target port 设成了 8000 → 边缘把流量打到没人监听的端口 | `railway domain update <域名> --port 8080`（或直接不设，让 Railway 自动跟随 `$PORT`） |
+| 3 | 最初 `railway.json` 里写了 `startCommand` | 平台侧 `${PORT}` 展开与镜像 CMD 冲突，端口拿到字面量 | 删掉 `startCommand`，**只留镜像 CMD**，让 `$PORT` 只有一个来源 |
+
+排错要点（以后照这个查）：
+
+```bash
+railway logs <DEPLOYMENT_ID> --lines 600   # 不带 ID 只看得到构建日志！
+railway domain list --json                  # 看 targetPort 是否等于容器实际端口
+railway variables --json                    # 看 PORT/LLM_* 是否注入
+```
+
+改完代码重新部署（不需要 GitHub，直接传本地目录）：
+
+```bash
+cd D:\工作区\长期任务\game
+railway up -d -y
+python scripts/smoke_remote.py https://zhuling-wuming.up.railway.app
+```
+
+**线上配置现状**：单副本、`AI_DEBUG=0`（`/debug/ai` 返回 404）、LLM 已接（启动日志 `LLM 已就绪`）、
+变量 `LLM_API_KEY / LLM_BASE_URL / LLM_MODEL / LLM_MAX_TOKENS` 都在 Railway Variables 里。

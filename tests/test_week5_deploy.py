@@ -91,3 +91,23 @@ def test_readme_points_to_deploy_doc():
     # 不能把 Vercel 说成可用
     deploy_section = readme.split("## 6. 部署")[1].split("## 7")[0]
     assert "Vercel" in deploy_section and "❌" in deploy_section
+
+
+def test_push_helper_is_usable():
+    """推仓脚本要在，且两种认证方式都覆盖。"""
+    script = ROOT / "scripts" / "push_github.ps1"
+    assert script.is_file()
+    text = script.read_text(encoding="utf-8-sig")
+    assert "gh repo create" in text
+    assert "GITHUB_TOKEN" in text
+    assert "git push" in text
+    # Windows PowerShell 5.1 读 UTF-8 需要 BOM，否则中文会乱码成解析错误
+    assert script.read_bytes()[:3] == b"\xef\xbb\xbf", "push 脚本需要 UTF-8 BOM"
+
+
+def test_ci_workflow_runs_tests_offline():
+    ci = ROOT / ".github" / "workflows" / "ci.yml"
+    assert ci.is_file()
+    text = ci.read_text(encoding="utf-8")
+    assert "pytest" in text and "smoke_remote.py" in text
+    assert "LLM_DISABLE" in text, "CI 里必须强制离线，别烧掉额度"

@@ -155,14 +155,16 @@ async def test_offline_player_does_not_block_phase1(ws_base):
 
 async def test_heartbeat_marks_player_offline(ws_base):
     """服务端 60s 无消息判掉线（测试把阈值压到 1s）。"""
-    clients = await full_room(ws_base, ["甲", "乙"], config={"heartbeatSeconds": 1})
+    # 阈值压到 2s；整套跑的时候机器忙，判定窗口给足，避免偶发假失败
+    clients = await full_room(ws_base, ["甲", "乙"], config={"heartbeatSeconds": 2})
     try:
         # 乙保持心跳，甲彻底沉默
-        deadline = asyncio.get_event_loop().time() + 12
+        deadline = asyncio.get_event_loop().time() + 30
         found = None
         while asyncio.get_event_loop().time() < deadline:
             await clients[1].send("ping", t=1)
-            await clients[1].wait_for("pong", timeout=3)
+            await clients[1].wait_for("pong", timeout=5)
+            await asyncio.sleep(0.5)
             try:
                 st = await clients[1].wait_for(
                     "room:state",

@@ -33,6 +33,7 @@ def test_dockerfile_is_production_ready():
     assert "${PORT" in d, "必须跟随平台注入的 $PORT"
     assert "--workers 1" in d or "--workers', '1" in d, "内存态必须单 worker"
     assert "--proxy-headers" in d, "平台边缘终结 TLS，必须信任转发头"
+    assert "startCommand" not in read("railway.json"), "别再让平台覆盖 CMD（${PORT} 展开会出问题）"
     assert "AI_DEBUG=0" in d, "生产镜像默认关掉 AI 调试口"
     assert re.search(r"^USER (?!root)", d, re.M), "必须非 root 运行"
     assert "HEALTHCHECK" in d

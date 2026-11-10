@@ -33,4 +33,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 # 平台（Railway / Render / Koyeb / HF Spaces）会注入 $PORT，这里跟着走。
 # --proxy-headers：平台在边缘终结 TLS 后转发，不信任头会导致重定向/WS 地址出错。
 # --workers 1：内存态，多 worker 会各自持有不同房间 → 玩家互相看不到。
-CMD ["sh", "-c", "exec uvicorn server.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips='*' --timeout-keep-alive 75"]
+CMD ["sh", "-c", "exec uvicorn server.main:app --host 0.0.0.0 --port \"${PORT:-8000}\" --workers 1 --proxy-headers --forwarded-allow-ips=* --timeout-keep-alive 75"]

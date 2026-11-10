@@ -23,7 +23,7 @@ jobs:
       - name: 跑测试（测试强制离线，不会调用真模型）
         env:
           LLM_DISABLE: "1"
-        run: pytest -q
+        run: python -m pytest -q
 
       - name: 冒烟（本地起服务，验 24 项）
         env:

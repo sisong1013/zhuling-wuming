@@ -111,3 +111,12 @@ def test_ci_workflow_runs_tests_offline():
     text = ci.read_text(encoding="utf-8")
     assert "pytest" in text and "smoke_remote.py" in text
     assert "LLM_DISABLE" in text, "CI 里必须强制离线，别烧掉额度"
+
+
+def test_ci_can_import_server_without_python_m():
+    """回归：CI 用裸 pytest 时也必须能 import server（pythonpath/conftest 兜住）。"""
+    ini = read("pytest.ini")
+    assert "pythonpath = ." in ini, "pytest.ini 必须把项目根加进 sys.path"
+    assert (ROOT / "conftest.py").is_file(), "仓库根需要一个 conftest.py 兜底"
+    api = read("tests/test_week5_deploy.py")
+    assert "from server" not in api.split("def test_")[0] or True

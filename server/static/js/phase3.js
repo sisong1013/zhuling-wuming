@@ -5,7 +5,8 @@ import { esc } from "./ui.js";
 export function renderPhase3(root, state, { send }) {
   if (!root) return;
   const items = state.replay || [];
-  const confirmed = state.progress?.confirmed ?? 0;
+  const confirmedIds = Array.isArray(state.progress?.confirmed) ? state.progress.confirmed : [];
+  const confirmed = confirmedIds.length;
   const total = state.progress?.total ?? state.count;
 
   // 服务端给的是「问题条目 + 回答条目」两条，这里按 questionId 配对成一行
@@ -56,6 +57,18 @@ export function renderPhase3(root, state, { send }) {
         <button class="btn primary" id="btn-confirm" ${state.confirmedRound === state.round ? "disabled" : ""}>
           我看完了
         </button>
+      </div>
+      <div class="progress-chips">
+        ${(state.players || [])
+          .map(
+            (p) =>
+              `<span class="chip ${confirmedIds.includes(p.id) ? "done" : "waiting"}">${esc(
+                p.nickname
+              )}${p.isAi ? " · AI" : ""}<i>${
+                confirmedIds.includes(p.id) ? "已示意" : "还没看"
+              }</i></span>`
+          )
+          .join("")}
       </div>
       <p class="hint">${confirmed}/${total} 人已示意</p>
     </div>`;

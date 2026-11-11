@@ -56,6 +56,9 @@
       </div>
       <div class="topbar__actions">
         <span class="conn" id="conn" data-state="off">连接中…</span>
+        <button class="btn ghost small" id="btn-my-card" aria-expanded="false" aria-controls="my-card" hidden>
+          我的卡
+        </button>
         <button class="btn ghost small" id="btn-open-board" aria-expanded="false" aria-controls="board">
           观众板
         </button>
@@ -95,6 +98,9 @@
         <ul class="player-list compact" id="roster"></ul>
       </aside>
     </main>
+
+    <!-- 我的人设卡（随时回顾） -->
+    <aside class="drawer glass card-drawer" id="my-card" hidden aria-label="我的人设卡"></aside>
 
     <!-- 观众板抽屉 -->
     <aside class="drawer glass" id="board" hidden aria-label="观众板"></aside>

@@ -57,12 +57,25 @@ export function renderPhase1(root, state, { send }) {
       <h3 class="sub-title">本幕进度</h3>
       <div class="progress-chips">
         ${state.players
-          .map(
-            (p) =>
-              `<span class="chip ${state.progress.acted.includes(p.id) ? "done" : ""}">${esc(
-                p.nickname
-              )}${p.isAi ? " · AI" : ""}</span>`
-          )
+          .map((p) => {
+            const kind = (state.progress.kinds || {})[p.id];
+            const acted = (state.progress.acted || []).includes(p.id);
+            const label = acted
+              ? { ASK: "已提问", SUBMIT: "已呈看板", SKIP: "已略过" }[kind] || "已行动"
+              : p.cooldown > 0
+              ? "冷却中"
+              : "待行动";
+            const cls = acted
+              ? kind === "SUBMIT"
+                ? "done submit"
+                : kind === "ASK"
+                ? "done ask"
+                : "done skip"
+              : p.cooldown > 0
+              ? "cold"
+              : "waiting";
+            return `<span class="chip ${cls}">${esc(p.nickname)}${p.isAi ? " · AI" : ""}<i>${label}</i></span>`;
+          })
           .join("")}
       </div>
     </div>`;

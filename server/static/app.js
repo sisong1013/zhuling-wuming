@@ -7,6 +7,7 @@ import { $, esc, toast } from "./js/ui.js";
 import { state, connect, on, send, hardReset } from "./js/ws.js";
 import { mountTimer, renderTimer, startTicker } from "./js/timer.js";
 import { bindBoardContext, renderBoard, toggleBoard } from "./js/board.js";
+import { renderMyCard, toggleMyCard, syncMyCardButton } from "./js/mycard.js";
 import { renderLobby } from "./js/lobby.js";
 import { renderWaiting } from "./js/waiting.js";
 import { renderCard } from "./js/card.js";
@@ -110,6 +111,9 @@ function render(force = false) {
   if (state.phase === "PHASE1" && drawer && !drawer.hidden) {
     renderBoard(drawer, state, ctx);
   }
+  syncMyCardButton(state);
+  const cardDrawer = $("#my-card");
+  if (cardDrawer && !cardDrawer.hidden) renderMyCard(cardDrawer, state);
   if (state.phase === "OVER") toggleBoard(false);
 }
 
@@ -284,6 +288,7 @@ function restart() {
 }
 
 function boot() {
+  $("#btn-my-card")?.addEventListener("click", () => toggleMyCard(true));
   const openBtn = $("#btn-open-board");
   if (openBtn) openBtn.addEventListener("click", () => toggleBoard());
   const leaveBtn = $("#btn-leave");

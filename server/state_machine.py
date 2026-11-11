@@ -262,9 +262,16 @@ class GameRegistry:
     def phase1_progress(self, room: Room) -> dict[str, Any]:
         """公开进度：谁已经行动过（不含行动内容）。"""
         acted = [p.id for p in room.ordered_players() if p.acted_in(room.round)]
+        # 行动类型是公开的（提问/呈上看板/略过），前端据此显示三态 chip
+        kinds = {
+            p.id: p.action_kind
+            for p in room.ordered_players()
+            if p.acted_in(room.round) and p.action_kind
+        }
         return {
             "round": room.round,
             "acted": acted,
+            "kinds": kinds,
             "total": room.count,
             "pending": [p.id for p in room.ordered_players() if not p.acted_in(room.round)],
         }

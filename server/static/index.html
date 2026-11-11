@@ -33,6 +33,7 @@
     <link rel="apple-touch-icon" href="/static/favicon.svg" />
     <link rel="stylesheet" href="/static/style.css" />
     <link rel="stylesheet" href="/static/style.v4.css" />
+    <link rel="stylesheet" href="/static/style.v5.css" />
   </head>
   <body data-phase="LOBBY">
     <!-- 舞台背景：幕布 + 顶光 + 木地板 -->
@@ -81,7 +82,14 @@
     <main class="layout">
       <div class="view-slot" id="view"></div>
       <aside class="side glass" id="side" hidden>
-        <h3 class="sub-title">公开问答</h3>
+        <div class="feed-head">
+          <h3 class="sub-title">公开问答</h3>
+          <div class="feed-pager">
+            <button class="chip-btn" id="feed-prev" aria-label="上一轮">◀</button>
+            <span id="feed-round">本轮</span>
+            <button class="chip-btn" id="feed-next" aria-label="下一轮">▶</button>
+          </div>
+        </div>
         <ul class="feed" id="feed"></ul>
         <h3 class="sub-title">剧团名册</h3>
         <ul class="player-list compact" id="roster"></ul>

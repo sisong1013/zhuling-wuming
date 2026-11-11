@@ -174,7 +174,7 @@ function receive(msg) {
     if (msg.you) {
       state.you = msg.you;
       if (msg.you.roomNo != null) state.myRoomNo = msg.you.roomNo;
-      if (msg.you.draft) state.board = { ...msg.you.draft };
+      if (msg.you.draft !== undefined) state.board = { ...(msg.you.draft || {}) };
       if (msg.you.cardSubmitted != null) state.cardSubmitted = !!msg.you.cardSubmitted;
       if (msg.you.readingConfirmed != null) state.readingConfirmed = !!msg.you.readingConfirmed;
       if (msg.you.reconnectToken) saveToken(msg.roomCode, msg.you.id, msg.you.reconnectToken);
@@ -324,7 +324,25 @@ function receive(msg) {
     return;
   }
 
+  if (type === "board:draftSaved") {
+    state.board = { ...(msg.board || {}) };
+    emit("state", state);
+    return;
+  }
+
   if (type === "board:progress" || type === "submit:result") {
+    if (type === "submit:result" && msg.correct === false) {
+      state.lastSubmit = {
+        round: msg.round,
+        missing: msg.missing || [],
+        wrong: msg.wrong || [],
+        cooldown: msg.cooldown || 0,
+      };
+      const detail = [];
+      if (msg.wrong?.length) detail.push(`猜错 ${msg.wrong.length} 格（${msg.wrong.map((n) => n + " 号").join("、")}）`);
+      if (msg.missing?.length) detail.push(`还有 ${msg.missing.length} 格没猜（${msg.missing.map((n) => n + " 号").join("、")}）`);
+      toast(`看板未通过：${detail.join("，") || "有格子不对"}`, "error");
+    }
     emit("submit", msg);
     emit("state", state);
     return;
@@ -338,6 +356,8 @@ function receive(msg) {
 
   if (type === "round:ended") {
     state.feed = [];
+    state.feedViewRound = undefined;
+    state.lastSubmit = null;
     emit("state", state);
     return;
   }
@@ -388,11 +408,16 @@ function applySnapshot(snap) {
 }
 
 export /** 问答线程：同一个 questionId 的问题与回答合并成一条，渲染时成对显示 */
+function msgRound(questionId) {
+  const found = (state.feed || []).find((x) => x && x.questionId === questionId && x.round);
+  return found?.round || state.round || 1;
+}
+
 function upsertThread(questionId, patch) {
   if (!questionId) return;
   let item = (state.feed || []).find((x) => x && x.questionId === questionId);
   if (!item) {
-    item = { kind: "thread", questionId };
+    item = { kind: "thread", questionId, round: msgRound(questionId) };
     state.feed.push(item);
   }
   Object.assign(item, patch);

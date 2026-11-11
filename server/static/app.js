@@ -177,10 +177,37 @@ function renderHud() {
   renderTimer(mountTimer($("#timer")), state);
 }
 
+function feedRounds() {
+  const rounds = new Map();
+  for (const item of state.feed || []) {
+    const round = item.round || state.round || 1;
+    if (!rounds.has(round)) rounds.set(round, []);
+    rounds.get(round).push(item);
+  }
+  return rounds;
+}
+
+function renderFeedPager() {
+  const label = $("#feed-round");
+  if (!label) return;
+  const rounds = feedRounds();
+  const current = state.feedViewRound ?? "live";
+  label.textContent = current === "live" ? `本轮（第 ${state.round} 轮）` : `第 ${current} 轮`;
+  const prev = $("#feed-prev");
+  const next = $("#feed-next");
+  const keys = [...rounds.keys()].sort((a, b) => a - b);
+  if (prev) prev.disabled = !keys.length || (current === "live" && keys.length < 2);
+  if (next) next.disabled = current === "live";
+}
+
 function renderFeed() {
   const list = $("#feed");
   if (!list) return;
-  list.innerHTML = (state.feed || [])
+  renderFeedPager();
+  const rounds = feedRounds();
+  const viewRound = state.feedViewRound;
+  const source = viewRound ? rounds.get(viewRound) || [] : state.feed || [];
+  list.innerHTML = source
     .slice(-40)
     .map((item) => renderFeedItem(item))
     .join("");
@@ -251,6 +278,23 @@ function boot() {
       if (!confirm("确认离开？座位会被释放")) return;
       restart();
       toast("已回到入口");
+    });
+  }
+
+  for (const [selector, step] of [
+    ["#feed-prev", -1],
+    ["#feed-next", 1],
+  ]) {
+    $(selector)?.addEventListener("click", () => {
+      const keys = [...feedRounds().keys()].sort((a, b) => a - b);
+      if (!keys.length) return;
+      const live = keys[keys.length - 1];
+      const current = state.feedViewRound ?? live;
+      const index = Math.max(0, keys.indexOf(current));
+      const target = keys[index + step];
+      if (target === undefined) return;
+      state.feedViewRound = target === live ? undefined : target;
+      renderFeed();
     });
   }
 

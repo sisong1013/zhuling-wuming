@@ -69,6 +69,14 @@ export function renderWaiting(root, state, { send }) {
                  <button class="btn" id="btn-add-ai-1" ${full ? "disabled" : ""}>+1 AI</button>
                  <button class="btn" id="btn-add-ai-2" ${full ? "disabled" : ""}>+2 AI</button>
                </div>
+               <label class="field">
+                 <span>问答模式</span>
+                 <select id="qa-mode">
+                   <option value="PUBLIC" ${(state.config && state.config.qaVisibility) === "PUBLIC" ? "selected" : ""}>全公开 · 问题和回答所有人可见</option>
+                   <option value="SEMI" ${(state.config && state.config.qaVisibility) === "SEMI" ? "selected" : ""}>半公开 · 问题公开，回答只有问/答两人可见</option>
+                   <option value="PRIVATE" ${(state.config && state.config.qaVisibility) === "PRIVATE" ? "selected" : ""}>私密 · 每对问答只有当事人可见</option>
+                 </select>
+               </label>
                <p class="hint">当前玩法：<b>${
                  state.gameMode === "PERSONA" ? "人设卡（先写卡 → 错位分配 → 读卡）" : "猜真人"
                }</b>；陪演 AI ${aiCount} 个</p>
@@ -91,6 +99,15 @@ export function renderWaiting(root, state, { send }) {
       forcedSubmitRound: Number(root.querySelector("#cfg-forced").value),
     });
     toast("安排已记下");
+  });
+
+  root.querySelector("#qa-mode")?.addEventListener("change", (event) => {
+    const mode = event.target.value;
+    send("setup:config", { qaVisibility: mode });
+    toast(
+      { PUBLIC: "问答改为全公开", SEMI: "问答改为半公开（回答只有当事人能看到）", PRIVATE: "问答改为私密" }[mode] ||
+        "已更新问答模式"
+    );
   });
 
   root.querySelectorAll(".mode-btn").forEach((btn) => {

@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 HTML_ASSETS = ["/", "/static/index.html"]
-CSS_ASSETS = ["/static/style.css", "/static/style.v4.css"]
+CSS_ASSETS = ["/static/style.css", "/static/style.v4.css", "/static/style.v5.css"]
 ASSET_EXTRAS = ["/static/favicon.svg", "/favicon.ico", "/static/og.png"]
 JS_ASSETS = [
     "/static/app.js",

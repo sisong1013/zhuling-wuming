@@ -13,7 +13,9 @@ export function renderPhase1(root, state, { send }) {
   const options = targets
     .map((no) => `<option value="${no}">#${no}</option>`)
     .join("");
-  const canAsk = !acted && cooldown === 0 && !state.forcedSubmit;
+  // 冷却只限制「呈上看板」，提问/略过照常（这是规则本意）
+  const canSubmitBlocked = cooldown > 0 && !state.forcedSubmit;
+  const canAsk = !acted && !state.forcedSubmit;
 
   root.innerHTML = `
     <div class="card action-card">
@@ -38,13 +40,15 @@ export function renderPhase1(root, state, { send }) {
       </div>
 
       <div class="row-actions between">
-        <button class="link-btn" id="btn-board-inline">◆ 打开观众板（呈上看板）</button>
+        <button class="link-btn" id="btn-board-inline">◆ 打开观众板（${
+          canSubmitBlocked ? "冷却中，暂不可呈" : "呈上看板"
+        }）</button>
         <button class="btn ghost" id="btn-skip" ${acted ? "disabled" : ""}>略过本轮</button>
       </div>
 
       <p class="hint">${
         cooldown > 0
-          ? `你在冷却期（剩 ${cooldown} 轮），只能略过`
+          ? `你在冷却期（剩 ${cooldown} 轮）：不能呈上看板，但可以继续提问或略过`
           : acted
           ? "本幕已行动，等其他人…"
           : "提问会公开给所有人，也会消耗本轮唯一的机会。"

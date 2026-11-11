@@ -92,6 +92,7 @@ class GameConfig:
     forced_wrong_penalty: int = 1
     forced_wrong_in_cooldown_penalty: int = 2
     heartbeat_seconds: float = 60.0  # 服务端多久没收到消息判定掉线
+    qa_visibility: str = "PUBLIC"  # 问答可见性：PUBLIC 全公开 / SEMI 半公开 / PRIVATE 私密
     over_retention_seconds: float = 600.0  # 结束后保留多久可复盘
     # 第 3 周：AI 节奏（全部可配，测试里压到 0.1s 级别）
     ai_think_seconds: float = 6.0  # 第一幕思考延迟基准（实际 0.8–1.7 倍随机）
@@ -111,6 +112,7 @@ class GameConfig:
             "maxPlayers": self.max_players,
             "minPlayers": self.min_players,
             "cooldownRounds": self.cooldown_rounds,
+            "qaVisibility": self.qa_visibility,
             "aiThinkSeconds": self.ai_think_seconds,
             "aiCardDelaySeconds": self.ai_card_delay_seconds,
             "aiAnswerDelaySeconds": self.ai_answer_delay_seconds,
@@ -138,6 +140,9 @@ class GameConfig:
         "aiConfirmDelaySeconds": "ai_confirm_delay_seconds",
         "aiLlmTimeoutSeconds": "ai_llm_timeout_seconds",
     }
+    _STR_ENUMS = {
+        "qaVisibility": ("qa_visibility", ("PUBLIC", "SEMI", "PRIVATE")),
+    }
     _RANGES = {
         "forcedSubmitRound": (1, 99),
         "maxPlayers": (2, 8),  # 第一周硬上限 8 人
@@ -150,6 +155,14 @@ class GameConfig:
         errors: list[str] = []
         values: dict[str, Any] = {}
         for key, raw in patch.items():
+            if key in self._STR_ENUMS:
+                attr, allowed = self._STR_ENUMS[key]
+                val = str(raw or "").strip().upper()
+                if val not in allowed:
+                    errors.append(f"{key} 只能是 {'/'.join(allowed)}")
+                    continue
+                values[attr] = val
+                continue
             if key in self._SEC_FIELDS:
                 try:
                     val = float(raw)

@@ -249,6 +249,15 @@ def decrement_cooldowns(room: Room) -> list[dict[str, Any]]:
 # ----------------------------------------------------------------------
 # 可见性裁剪（第一周只实现 PUBLIC）
 # ----------------------------------------------------------------------
+def visibility_for(room: "Room") -> Visibility:
+    """房间配置里的问答模式 → 问题对象的可见性。"""
+    raw = str(getattr(room.config, "qa_visibility", "PUBLIC") or "PUBLIC").upper()
+    try:
+        return Visibility(raw)
+    except ValueError:
+        return Visibility.PUBLIC
+
+
 def clip_text(
     visibility: Visibility,
     text: str | None,
@@ -256,6 +265,7 @@ def clip_text(
     asker_id: str,
     target_id: str,
     viewer_id: str | None,
+    kind: str = "question",
 ) -> str | None:
     """按可见性裁剪问答内容。
 
@@ -266,14 +276,16 @@ def clip_text(
     """
     if text is None:
         return None
+    party = viewer_id in (asker_id, target_id)
     if visibility is Visibility.PUBLIC:
+        # 全公开：问题和回答都全员可见
         return text
     if visibility is Visibility.SEMI:
-        # TODO(第 2 周)：SEMI 的具体含义未定稿，先按「当事双方可见」占位。
-        return text if viewer_id in (asker_id, target_id) else None
+        # 半公开：问题全员可见，回答只有当事人（问者/被问者）看得到
+        return text if (kind != "answer" or party) else None
     if visibility is Visibility.PRIVATE:
-        # TODO(第 2 周)：PRIVATE 暂按「仅被问者可见」占位。
-        return text if viewer_id == target_id else None
+        # 私密：问题与回答都只有当事人看得到
+        return text if party else None
     return None
 
 
@@ -320,10 +332,14 @@ def build_replay_items(room: Room, round_no: int | None = None) -> list[dict[str
     return items
 
 
-def question_public_payload(room: Room, q: Question) -> dict[str, Any]:
+def question_public_payload(
+    room: Room, q: Question, viewer_id: str | None = None
+) -> dict[str, Any] | None:
     """question:public 载荷：提问本身是公开信息。"""
     asker = room.player(q.asker_id)
     target = room.player(q.target_id)
+    if q.visibility is Visibility.PRIVATE and viewer_id not in (q.asker_id, q.target_id):
+        return None  # 私密：旁观者连「有人被问了」都不该知道
     return {
         "type": "question:public",
         "questionId": q.id,
@@ -334,16 +350,25 @@ def question_public_payload(room: Room, q: Question) -> dict[str, Any]:
         "targetNickname": target.nickname if target else "?",
         "targetNo": target.room_no if target else None,  # 被问的是几号（公开信息）
         "text": clip_text(
-            q.visibility, q.text, asker_id=q.asker_id, target_id=q.target_id, viewer_id=None
+            q.visibility,
+            q.text,
+            asker_id=q.asker_id,
+            target_id=q.target_id,
+            viewer_id=viewer_id,
+            kind="question",
         ),
         "visibility": q.visibility.value,
         "status": q.status.value,
     }
 
 
-def answer_public_payload(room: Room, q: Question) -> dict[str, Any]:
+def answer_public_payload(
+    room: Room, q: Question, viewer_id: str | None = None
+) -> dict[str, Any] | None:
     """answer:public 载荷：回答（或超时）也是公开信息。"""
     target = room.player(q.target_id)
+    if q.visibility is Visibility.PRIVATE and viewer_id not in (q.asker_id, q.target_id):
+        return None
     return {
         "type": "answer:public",
         "questionId": q.id,
@@ -352,7 +377,12 @@ def answer_public_payload(room: Room, q: Question) -> dict[str, Any]:
         "targetNickname": target.nickname if target else "?",
         "targetNo": target.room_no if target else None,
         "answer": clip_text(
-            q.visibility, q.answer, asker_id=q.asker_id, target_id=q.target_id, viewer_id=None
+            q.visibility,
+            q.answer,
+            asker_id=q.asker_id,
+            target_id=q.target_id,
+            viewer_id=viewer_id,
+            kind="answer",
         ),
         "status": q.status.value,
         "timedOut": q.status is QuestionStatus.TIMEOUT,

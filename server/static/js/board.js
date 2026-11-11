@@ -23,9 +23,26 @@ export function renderBoard(root, state, { send }) {
       const options = [`<option value="">待猜</option>`]
         .concat(choices.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`))
         .join("");
+      const last = state.lastSubmit || {};
+      const reviewing = last.round === state.round && ((last.wrong || []).length || (last.missing || []).length);
+      const marked = reviewing
+        ? (last.wrong || []).includes(no)
+          ? "is-wrong"
+          : (last.missing || []).includes(no)
+          ? "is-missing"
+          : ""
+        : "";
+      const badge =
+        marked === "is-wrong"
+          ? '<span class="mark wrong">猜错</span>'
+          : marked === "is-missing"
+          ? '<span class="mark missing">未猜</span>'
+          : own
+          ? '<span class="lock">本人</span>'
+          : "";
       return `
-        <div class="board-cell ${own ? "is-locked" : ""}">
-          <span class="no">${no} 号${own ? '<span class="lock">本人</span>' : ""}</span>
+        <div class="board-cell ${own ? "is-locked" : ""} ${marked}">
+          <span class="no">${no} 号${badge}</span>
           <select data-no="${no}" ${own ? "disabled" : ""} aria-label="编号 ${no} 对应谁">
             ${own ? `<option value="${esc(mine)}" selected>${esc(mine)}</option>` : options}
           </select>

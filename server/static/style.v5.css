@@ -1,0 +1,106 @@
+/* ---------------- 第 5 周第二批：问答翻页 / 深色问题字 / 逐格结果 ---------------- */
+
+/* ① 公开问答的翻页条 */
+.feed-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.feed-head .sub-title {
+  margin: 0;
+}
+
+.feed-pager {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: 1px;
+  color: #d9c39a;
+}
+
+.chip-btn {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #f2dfae;
+  border: 1px solid rgba(217, 181, 107, 0.45);
+  background: rgba(255, 246, 224, 0.08);
+}
+
+.chip-btn:hover:not(:disabled) {
+  background: rgba(217, 181, 107, 0.22);
+}
+
+.chip-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ② 问题文字改深色（它坐在米色卡片上，白字才费眼） */
+.question-text {
+  color: #241f18;
+  font-size: 16.5px;
+  line-height: 1.7;
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.question-box {
+  border-color: rgba(169, 130, 47, 0.55);
+  background: linear-gradient(180deg, rgba(255, 250, 236, 0.92), rgba(246, 236, 214, 0.86));
+}
+
+.question-box .label {
+  color: #7a5f2c;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.question-box.waiting .question-text {
+  color: #4a4237;
+  font-weight: 600;
+}
+
+/* 提问输入框／答题框：深色字，占位符浅一点 */
+#ask-text,
+#answer-text {
+  color: #23202a;
+}
+
+/* ③ 逐格提交结果：猜错的格子标红，没猜的标灰 */
+.board-cell.is-wrong {
+  border-color: #c2544f;
+  box-shadow: 0 0 0 2px rgba(194, 84, 80, 0.25);
+}
+
+.board-cell.is-missing {
+  border-color: rgba(160, 150, 140, 0.75);
+  border-style: dashed;
+}
+
+.board-cell .mark {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+
+.board-cell .mark.wrong {
+  color: #fff;
+  background: #b23f3a;
+}
+
+.board-cell .mark.missing {
+  color: #2a2114;
+  background: #d8cfc0;
+}
+
+.board-cell .mark.right {
+  color: #16321a;
+  background: #bfe0a8;
+}

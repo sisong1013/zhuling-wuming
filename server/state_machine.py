@@ -134,6 +134,19 @@ class GameRegistry:
                 continue
             await self.hub.send(p.id, payload)
 
+    async def broadcast_qa(self, room: Room, builder, q) -> None:
+        """问答按观众定制：全公开/半公开/私密 三档都在这里分流。
+
+        builder(room, q, viewer_id) 返回 None 表示「这个人不该看到这条」。
+        """
+        for viewer in room.ordered_players():
+            if not viewer.connected:
+                continue
+            payload = builder(room, q, viewer.id)
+            if payload is None:
+                continue
+            await self.hub.send(viewer.id, payload)
+
     async def send_to(self, room: Room, player_id: str, payload: dict[str, Any]) -> None:
         if room.player(player_id) is not None:
             await self.hub.send(player_id, payload)
@@ -313,12 +326,13 @@ class GameRegistry:
             target_id=target.id,
             text=body,
             round=room.round,
+            visibility=rules.visibility_for(room),
         )
         room.questions.append(q)
         player.action_round = room.round
         player.action_kind = ActionKind.ASK.value
 
-        await self.broadcast(room, rules.question_public_payload(room, q))
+        await self.broadcast_qa(room, rules.question_public_payload, q)
         # 通知被问者「有人问你了」，以及在自己队列里的位置（PHASE2 才轮到答）
         queue_pos = sum(
             1
@@ -667,7 +681,7 @@ class GameRegistry:
         q.answer = body
         q.status = QuestionStatus.ANSWERED
         self.timers.cancel(TimerKey.question(room.code, q.id))
-        await self.broadcast(room, rules.answer_public_payload(room, q))
+        await self.broadcast_qa(room, rules.answer_public_payload, q)
         await self._after_answer(room, q.target_id)
         return {"questionId": q.id, "status": q.status.value}
 
@@ -690,7 +704,7 @@ class GameRegistry:
         q.status = QuestionStatus.TIMEOUT
         q.answer = None
         log.info("题目超时 room=%s q=%s", room_code, question_id)
-        await self.broadcast(room, rules.answer_public_payload(room, q))
+        await self.broadcast_qa(room, rules.answer_public_payload, q)
         await self._after_answer(room, q.target_id)
 
     async def _after_answer(self, room: Room, target_id: str) -> None:

@@ -190,14 +190,23 @@ function feedRounds() {
 function renderFeedPager() {
   const label = $("#feed-round");
   if (!label) return;
-  const rounds = feedRounds();
-  const current = state.feedViewRound ?? "live";
-  label.textContent = current === "live" ? `本轮（第 ${state.round} 轮）` : `第 ${current} 轮`;
+  const keys = [...feedRounds().keys()].sort((a, b) => a - b);
+  const latest = keys.length ? keys[keys.length - 1] : state.round;
+  const viewing = state.feedViewRound ?? latest;
+  const index = Math.max(0, keys.indexOf(viewing));
+  const isLive = viewing >= latest;
+  label.textContent = isLive ? `本轮（第 ${latest} 轮）` : `第 ${viewing} 轮 · 看历史中`;
+
   const prev = $("#feed-prev");
   const next = $("#feed-next");
-  const keys = [...rounds.keys()].sort((a, b) => a - b);
-  if (prev) prev.disabled = !keys.length || (current === "live" && keys.length < 2);
-  if (next) next.disabled = current === "live";
+  if (prev) {
+    prev.disabled = index <= 0;
+    prev.title = keys[index - 1] ? `看第 ${keys[index - 1]} 轮` : "没有更早的轮次了";
+  }
+  if (next) {
+    next.disabled = isLive;
+    next.title = keys[index + 1] ? `看第 ${keys[index + 1]} 轮` : "已在本轮";
+  }
 }
 
 function renderFeed() {

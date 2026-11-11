@@ -13,6 +13,7 @@ from helpers import (
     persona_room,
     shuffled_card_board,
     start_game,
+    state_of,
     submit_all_cards,
     wait_phase,
 )
@@ -81,7 +82,9 @@ async def test_partial_persona_board_reports_missing(ws_base):
     clients, _ = await _persona_playing(ws_base, ["甲", "乙"])
     try:
         board = card_board(clients)
-        dropped = list(board)[0]
+        # 本人那格是「白送」的：服务端会用真值补齐，所以必须丢「别人的」格子才算缺格
+        own = str(state_of(clients[0])["you"]["roomNo"])
+        dropped = next(no for no in board if str(no) != own)
         board.pop(dropped)
         await clients[0].send("phase1:submit", board=board)
         res = await clients[0].wait_for("submit:result", timeout=8)

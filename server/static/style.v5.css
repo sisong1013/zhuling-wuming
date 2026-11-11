@@ -104,3 +104,82 @@
   color: #16321a;
   background: #bfe0a8;
 }
+
+/* ---------------- 第 5 周第三批：公开问答可读性 ---------------- */
+
+.side .sub-title,
+.feed-head .sub-title {
+  color: #e6cd97;
+}
+
+.feed-item.thread {
+  background: linear-gradient(180deg, rgba(255, 246, 224, 0.12), rgba(255, 246, 224, 0.06));
+}
+
+.feed-q {
+  color: #fffdf7;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.feed-q b {
+  color: #ffd98a;
+  font-weight: 700;
+}
+
+.feed-q .feed-text {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* 回答做成一块浅色底的小卡片，跟问题明确区分，也不再"淡到看不见" */
+.feed-a {
+  margin: 8px 0 0 16px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 250, 236, 0.93);
+  color: #23202a;
+  font-size: 13.5px;
+  line-height: 1.65;
+  font-weight: 500;
+}
+
+.feed-a::before {
+  border-left-color: rgba(201, 160, 68, 0.9);
+  border-bottom-color: rgba(201, 160, 68, 0.9);
+}
+
+.feed-a b {
+  color: #7a5f2c;
+}
+
+.feed-a.is-pending {
+  background: rgba(255, 250, 236, 0.55);
+  color: #4a4237;
+  font-style: italic;
+}
+
+.feed-a.is-timeout {
+  background: rgba(255, 226, 222, 0.92);
+  color: #8d2f2b;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.feed-pager {
+  color: #f0d79f;
+  font-weight: 600;
+}
+
+.feed-pager .chip-btn {
+  color: #2a2114;
+  background: linear-gradient(180deg, #fbeec4, #d9b56b);
+  border-color: #b58a3c;
+  font-weight: 700;
+}
+
+.feed-pager .chip-btn:disabled {
+  color: #8a7c6d;
+  background: rgba(255, 246, 224, 0.12);
+  opacity: 0.6;
+}

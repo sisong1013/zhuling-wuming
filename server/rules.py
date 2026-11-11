@@ -141,9 +141,15 @@ def _resolve_guess(room: Room, guess: str) -> str | None:
     return hit.nickname if hit else None
 
 
-def judge_board(board: dict[int, str], room: Room) -> dict[str, Any]:
-    """判定看板是否「全对」（模式无关的外壳，内部按 game_mode 取真值）。"""
+def judge_board(board: dict[int, str], room: Room, player: "Player | None" = None) -> dict[str, Any]:
+    """判定看板是否「全对」（模式无关的外壳，内部按 game_mode 取真值）。
+
+    自己那格是「白送的」：客户端不填、或老客户端根本没提交它，
+    这里都按真值补齐，避免出现「明明全对却被判错」。
+    """
     expected = truth_for(room)
+    if player is not None and player.room_no in expected and not board.get(player.room_no):
+        board = {**board, player.room_no: expected[player.room_no]}
     missing = sorted(no for no in expected if no not in board or not board[no])
 
     wrong: list[int] = []

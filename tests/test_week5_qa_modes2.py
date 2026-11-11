@@ -138,3 +138,42 @@ def test_question_text_is_dark_for_contrast():
     css = (STATIC / "style.v5.css").read_text(encoding="utf-8")
     assert ".question-text" in css
     assert "#241f18" in css, "问题文字应为深色（米色卡片上浅色字费眼）"
+
+
+def test_own_cell_missing_still_counts_correct():
+    """用户真实反馈的那个 bug：客户端不填本人那格 -> 被判「有格子没猜」-> 误报错误并进冷却。"""
+    room, players, _ = make_room()
+    asker = players[0]
+    board = {no: nick for no, nick in ((2, players[1].nickname), (3, players[2].nickname))}
+    # 1) 老行为：不带 player 参数时确实会判缺格（保留给无 player 的调用方）
+    assert rules.judge_board(dict(board), room)["correct"] is False
+    # 2) 新行为：带上 player 后，本人那格按真值补齐，应当全对
+    verdict = rules.judge_board(dict(board), room, asker)
+    assert verdict["correct"] is True, verdict
+    assert not verdict["missing"]
+
+
+def test_board_collect_includes_own_cell():
+    board = (STATIC / "js" / "board.js").read_text(encoding="utf-8")
+    collect = board.split("function collect(root)")[1].split("return")[0]
+    assert "sel.disabled) continue" not in collect, "本人格不能再被跳过，否则服务端看不到它"
+    assert "out[sel.dataset.no] = sel.value" in collect
+
+
+def test_own_cell_badge_is_renren():
+    board = (STATIC / "js" / "board.js").read_text(encoding="utf-8")
+    badge = board.split("const badge =")[1].split(": "";")[0]
+    assert "own" in badge.split("marked")[0], "本人标签必须优先于「未猜」"
+
+
+def test_feed_history_not_cleared_between_rounds():
+    ws = (STATIC / "js" / "ws.js").read_text(encoding="utf-8")
+    block = ws.split('if (type === "round:ended")')[1].split("}")[0]
+    assert "state.feed = []" not in block, "翻页需要历史，round:ended 不能清空 feed"
+
+
+def test_feed_answer_has_high_contrast_background():
+    css = (STATIC / "style.v5.css").read_text(encoding="utf-8")
+    assert ".feed-a" in css
+    assert "#23202a" in css, "回答要用深色字（浅底卡片上）"
+    assert "rgba(255, 250, 236, 0.93)" in css, "回答要有浅色底卡片，避免和深色侧栏糊在一起"

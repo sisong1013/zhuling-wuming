@@ -407,7 +407,7 @@ class GameRegistry:
     # ==================================================================
     async def _apply_submit(self, room: Room, player: Player, board: dict[int, str]) -> bool:
         """结算一次看板提交，返回是否获胜。"""
-        verdict = rules.judge_board(board, room)
+        verdict = rules.judge_board(board, room, player)
         if verdict["correct"]:
             await self.send_to(
                 room,

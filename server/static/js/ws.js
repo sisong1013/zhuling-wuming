@@ -174,7 +174,12 @@ function receive(msg) {
     if (msg.you) {
       state.you = msg.you;
       if (msg.you.roomNo != null) state.myRoomNo = msg.you.roomNo;
-      if (msg.you.draft !== undefined) state.board = { ...(msg.you.draft || {}) };
+      // 只在本地没有选择时才回填服务端草稿，避免把正在选的冲掉
+      if (msg.you.draft !== undefined) {
+        const local = state.board || {};
+        const hasLocal = Object.keys(local).some((k) => local[k]);
+        if (!hasLocal) state.board = { ...(msg.you.draft || {}) };
+      }
       if (msg.you.cardSubmitted != null) state.cardSubmitted = !!msg.you.cardSubmitted;
       if (msg.you.readingConfirmed != null) state.readingConfirmed = !!msg.you.readingConfirmed;
       if (msg.you.reconnectToken) saveToken(msg.roomCode, msg.you.id, msg.you.reconnectToken);
@@ -355,7 +360,8 @@ function receive(msg) {
   }
 
   if (type === "round:ended") {
-    state.feed = [];
+    // 保留历史（翻页要能往回看），只重置这一轮的"猜错/未猜"标记
+    state.feed = (state.feed || []).slice(-200);
     state.feedViewRound = undefined;
     state.lastSubmit = null;
     emit("state", state);

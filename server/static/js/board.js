@@ -6,6 +6,7 @@ const PERSONA = "PERSONA";
 
 export function renderBoard(root, state, { send }) {
   if (!root) return;
+  autosaveSend = send;
 
   const numbers = state.roomNos.length
     ? state.roomNos
@@ -33,12 +34,12 @@ export function renderBoard(root, state, { send }) {
           : ""
         : "";
       const badge =
-        marked === "is-wrong"
+        own
+          ? '<span class="lock">本人</span>'
+          : marked === "is-wrong"
           ? '<span class="mark wrong">猜错</span>'
           : marked === "is-missing"
           ? '<span class="mark missing">未猜</span>'
-          : own
-          ? '<span class="lock">本人</span>'
           : "";
       return `
         <div class="board-cell ${own ? "is-locked" : ""} ${marked}">
@@ -76,7 +77,7 @@ export function renderBoard(root, state, { send }) {
     }</p>`;
 
   const refreshProgress = () => {
-    const selects = [...root.querySelectorAll("select[data-no]")].filter((x) => !x.disabled);
+    const selects = [...root.querySelectorAll("select[data-no]")];
     const filled = selects.filter((x) => x.value).length;
     const box = root.querySelector("[data-progress]");
     if (box) {
@@ -92,6 +93,7 @@ export function renderBoard(root, state, { send }) {
       sel.classList.toggle("is-empty", !sel.value);
       sel.closest(".board-cell")?.classList.toggle("is-picked", !!sel.value);
       refreshProgress();
+      autosave(root);
     });
     sel.classList.toggle("is-empty", !sel.value && !sel.disabled);
     const cell = sel.closest(".board-cell");
@@ -112,10 +114,21 @@ export function renderBoard(root, state, { send }) {
   });
 }
 
+let autosaveTimer = null;
+let autosaveSend = null;
+
+/** 改一格就自动存草稿（防「切阶段丢了」；呈上看板/收起抽屉都不清空） */
+function autosave(root) {
+  if (!autosaveSend) return;
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => autosaveSend("board:saveDraft", { board: collect(root) }), 400);
+}
+
 function collect(root) {
   const out = {};
   for (const sel of root.querySelectorAll("select[data-no]")) {
-    if (sel.disabled) continue;
+    // 本人那格虽然锁着，但它是白送的（自己当然知道），必须一起提交，
+    // 否则服务端会认为「有格子没猜」而判错。
     if (sel.value) out[sel.dataset.no] = sel.value;
   }
   return out;

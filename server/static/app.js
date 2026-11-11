@@ -233,6 +233,8 @@ function renderFeedItem(item) {
       ? `<div class="feed-a is-timeout">${who} 超时未答（TIMEOUT）</div>`
       : item.answer
       ? `<div class="feed-a"><b>${who}答：</b>${esc(item.answer)}</div>`
+      : item.masked
+      ? `<div class="feed-a is-hidden">🔒 ${who} 已作答（内容仅当事人可见）</div>`
       : `<div class="feed-a is-pending">${who} 待答…</div>`;
     return `<li class="feed-item thread" data-qid="${esc(item.questionId || "")}">
       <div class="feed-q"><b>${asker}</b> 问 <b>${target}</b>：<span class="feed-text">${esc(

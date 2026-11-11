@@ -333,6 +333,19 @@ class GameRegistry:
         player.action_kind = ActionKind.ASK.value
 
         await self.broadcast_qa(room, rules.question_public_payload, q)
+        if q.visibility.value == "PRIVATE":
+            # 私密：只告诉其他人「本轮有一条私密问答」，不说是谁问谁
+            for viewer in room.ordered_players():
+                if not viewer.connected or viewer.id in (q.asker_id, q.target_id):
+                    continue
+                await self.hub.send(
+                    viewer.id,
+                    {
+                        "type": "qa:privateNotice",
+                        "round": room.round,
+                        "text": "本轮有一条私密问答（仅当事人可见）",
+                    },
+                )
         # 通知被问者「有人问你了」，以及在自己队列里的位置（PHASE2 才轮到答）
         queue_pos = sum(
             1

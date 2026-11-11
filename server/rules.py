@@ -375,6 +375,7 @@ def answer_public_payload(
     target = room.player(q.target_id)
     if q.visibility is Visibility.PRIVATE and viewer_id not in (q.asker_id, q.target_id):
         return None
+    party = viewer_id in (q.asker_id, q.target_id)
     return {
         "type": "answer:public",
         "questionId": q.id,
@@ -392,6 +393,8 @@ def answer_public_payload(
         ),
         "status": q.status.value,
         "timedOut": q.status is QuestionStatus.TIMEOUT,
+        # 半公开：非当事人收到的是「已作答，但内容看不到」
+        "masked": q.visibility is Visibility.SEMI and not party and q.answer is not None,
     }
 
 # ----------------------------------------------------------------------

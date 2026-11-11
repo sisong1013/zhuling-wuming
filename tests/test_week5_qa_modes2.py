@@ -177,3 +177,30 @@ def test_feed_answer_has_high_contrast_background():
     assert ".feed-a" in css
     assert "#23202a" in css, "回答要用深色字（浅底卡片上）"
     assert "rgba(255, 250, 236, 0.93)" in css, "回答要有浅色底卡片，避免和深色侧栏糊在一起"
+
+
+def test_semi_masked_answer_is_flagged():
+    """半公开：遮蔽帧要带 masked 标记，前端才知道显示「已作答」而不是空白。"""
+    room, players, q = make_room("SEMI", Visibility.SEMI)
+    asker, target, bystander = players
+    q.answer = "在钟楼上。"
+    masked = rules.answer_public_payload(room, q, bystander.id)
+    assert masked["masked"] is True
+    assert masked["answer"] is None
+    # 当事人不该被标成 masked
+    assert rules.answer_public_payload(room, q, asker.id)["masked"] is False
+
+
+def test_private_notice_has_no_parties():
+    machine = (ROOT / "server" / "state_machine.py").read_text(encoding="utf-8")
+    block = machine.split("qa:privateNotice")[1].split("board:")[0] if "qa:privateNotice" in machine else ""
+    assert "qa:privateNotice" in machine
+    assert "asker_id" not in block and "targetNickname" not in block, "私密提示不能泄露当事人"
+
+
+def test_feed_renders_hidden_answer_text():
+    app = (STATIC / "app.js").read_text(encoding="utf-8")
+    assert "is-hidden" in app
+    assert "内容仅当事人可见" in app
+    css = (STATIC / "style.v5.css").read_text(encoding="utf-8")
+    assert ".feed-a.is-hidden" in css

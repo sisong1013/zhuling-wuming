@@ -287,6 +287,7 @@ function receive(msg) {
   if (type === "answer:public") {
     upsertThread(msg.questionId, {
       answer: msg.timedOut ? null : msg.answer,
+      masked: !!msg.masked,
       timedOut: !!msg.timedOut,
       answerNo: msg.targetNo ?? null,
       status: msg.status,
@@ -326,6 +327,11 @@ function receive(msg) {
       deadline: msg.deadline,
     };
     emit("state", state);
+    return;
+  }
+
+  if (type === "qa:privateNotice") {
+    pushFeed({ kind: "locked", text: msg.text || "本轮有一条私密问答（仅当事人可见）", round: msg.round });
     return;
   }
 

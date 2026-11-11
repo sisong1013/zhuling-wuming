@@ -30,13 +30,16 @@ export function renderOver(root, state, { send, reset }) {
         )
         .join("")
     : Object.entries(over.fullBoard || {})
-        .map(
-          ([no, nick]) => `
+        .sort((a, b) => Number(a[0]) - Number(b[0]))
+        .map(([no, who]) => {
+          // 服务端下发的是 { 编号: {nickname, playerId} }，也兼容纯字符串
+          const nick = typeof who === "string" ? who : (who && who.nickname) || "?";
+          return `
         <li class="map-row">
           <span class="map-no">#${no}</span>
           <span class="map-who">${esc(nick)}</span>
-        </li>`
-        )
+        </li>`;
+        })
         .join("");
 
   const timeline = (over.timeline || [])

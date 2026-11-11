@@ -215,7 +215,10 @@ function renderFeed() {
   renderFeedPager();
   const rounds = feedRounds();
   const viewRound = state.feedViewRound;
-  const source = viewRound ? rounds.get(viewRound) || [] : state.feed || [];
+  // 默认只看本轮（历史靠 ◀ ▶ 翻），否则侧栏会堆成一条长河
+  const source = viewRound
+    ? rounds.get(viewRound) || []
+    : (state.feed || []).filter((item) => !item.round || item.round === state.round);
   list.innerHTML = source
     .slice(-40)
     .map((item) => renderFeedItem(item))

@@ -242,3 +242,106 @@
   color: #1f1b16;
   font-weight: 600;
 }
+
+/* ---------------- 第 5 周第五批：谢幕页可读性（映射 + 时间线） ---------------- */
+
+/* 映射区：深色面板 + 亮字，彻底告别「淡金看不清」 */
+.over-card .mapping,
+.over-card .timeline {
+  background: rgba(18, 12, 22, 0.72);
+  border: 1px solid rgba(217, 181, 107, 0.35);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.over-card .map-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 4px;
+  border-bottom: 1px dashed rgba(217, 181, 107, 0.22);
+}
+
+.over-card .map-row:last-child {
+  border-bottom: none;
+}
+
+.over-card .map-no {
+  min-width: 42px;
+  color: #f2dfae;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.over-card .map-who {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.over-card .map-note,
+.over-card .map-content {
+  color: #e6dcc9;
+  font-weight: 500;
+}
+
+/* 时间线：轮次 / 谁问谁 / 问题 / 回答 全部提亮加粗 */
+.over-card .tl-item {
+  padding: 9px 6px;
+  border-bottom: 1px dashed rgba(217, 181, 107, 0.18);
+}
+
+.over-card .tl-item:last-child {
+  border-bottom: none;
+}
+
+.over-card .tl-round {
+  color: #f2dfae;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.over-card .tl-who,
+.over-card .tl-who b {
+  color: #fffdf7;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.over-card .tl-arrow {
+  color: #d9b56b;
+}
+
+.over-card .tl-q {
+  margin: 4px 0 2px;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.over-card .tl-a {
+  color: #ffeccd;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.over-card .tl-a.is-timeout {
+  color: #ffb4aa;
+}
+
+/* 高亮标签：金底深字，别再黄底淡字 */
+.over-card .hl {
+  color: #2a2114;
+  font-weight: 800;
+  background: linear-gradient(180deg, #fbeec4, #d9b56b);
+  border: 1px solid rgba(120, 80, 20, 0.45);
+  padding: 1px 8px;
+  border-radius: 99px;
+  font-size: 11.5px;
+}
+
+.over-card .over-stats,
+.over-card .hint {
+  color: #efe6d7;
+  font-weight: 600;
+}

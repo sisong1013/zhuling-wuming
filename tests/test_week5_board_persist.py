@@ -44,3 +44,24 @@ def test_feed_question_has_light_card():
     block = css.rsplit(".feed-q {", 1)[1].split("}")[0]
     assert "#f7efdd" in block, "问题要有浅底"
     assert "#23202a" in block, "问题要用深色字"
+
+
+def test_feed_defaults_to_current_round_only():
+    """侧栏默认只显示本轮，历史靠翻页，不然会堆成一条长河。"""
+    app = (STATIC / "app.js").read_text(encoding="utf-8")
+    block = app.split("const source = viewRound")[1].split(";")[0]
+    assert "item.round === state.round" in block, "默认视图必须按当前轮过滤"
+
+
+def test_over_mapping_handles_object_values():
+    """fullBoard 是 {编号: {nickname, playerId}}，直接 esc 会变 [object Object]。"""
+    over = (STATIC / "js" / "over.js").read_text(encoding="utf-8")
+    assert "who.nickname" in over or "who?.nickname" in over or "(who && who.nickname)" in over
+    assert 'typeof who === "string"' in over
+
+
+def test_over_page_has_high_contrast_styles():
+    css = (STATIC / "style.v5.css").read_text(encoding="utf-8")
+    for sel in (".over-card .map-who", ".over-card .tl-q", ".over-card .tl-a", ".over-card .hl"):
+        assert sel in css, f"缺少样式：{sel}"
+    assert "#ffffff" in css and "#2a2114" in css

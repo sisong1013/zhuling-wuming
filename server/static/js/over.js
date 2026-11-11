@@ -60,8 +60,12 @@ export function renderOver(root, state, { send, reset }) {
             ${tags}
           </p>
           <p class="tl-q">${esc(item.question)}</p>
-          <p class="tl-a ${item.timedOut ? "is-timeout" : ""}">${
-            item.timedOut ? "（超时未答）" : esc(item.answer || "")
+          <p class="tl-a ${item.timedOut ? "is-timeout" : ""} ${item.masked ? "is-masked" : ""}">${
+            item.timedOut
+              ? "（超时未答）"
+              : item.masked
+              ? "🔒 已作答（内容仅当事人可见）"
+              : esc(item.answer || "")
           }</p>
         </div>
       </li>`;

@@ -4,6 +4,13 @@ import { esc, toast } from "./ui.js";
 
 const PERSONA = "PERSONA";
 
+let boardKey = "";
+
+/** 强制下次重绘（提交结果、换阶段等确实需要重建时用） */
+export function invalidateBoard() {
+  boardKey = "";
+}
+
 export function renderBoard(root, state, { send }) {
   if (!root) return;
   autosaveSend = send;
@@ -50,6 +57,19 @@ export function renderBoard(root, state, { send }) {
         </div>`;
     })
     .join("");
+
+  // 只要「阶段 / 轮次 / 编号列表 / 候选项 / 自己那一格」没变，就别重建 DOM，
+  // 否则用户刚选好的人会被下一次 state 广播冲掉（这就是「选完就清空」的真凶）。
+  const signature = [
+    state.phase,
+    state.round,
+    numbers.join(","),
+    choices.join(","),
+    ownNo,
+    persona ? "P" : "R",
+  ].join("|");
+  if (signature === boardKey && root.querySelector(".board")) return;
+  boardKey = signature;
 
   const cooldown = state.you.cooldown || 0;
   const canSubmit =
@@ -110,7 +130,10 @@ export function renderBoard(root, state, { send }) {
   root.querySelector("[data-submit]")?.addEventListener("click", () => {
     const board = collect(root);
     if (!Object.keys(board).length) return toast("看板还空着：先在上面挑几格", "error");
+    // 先把当前选择存进草稿，再提交：提交失败也不会丢选项
+    send("board:saveDraft", { board });
     send("phase1:submit", { board });
+    invalidateBoard();
   });
 }
 

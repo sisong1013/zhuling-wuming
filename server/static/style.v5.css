@@ -200,3 +200,45 @@
   font-style: italic;
   letter-spacing: 0.3px;
 }
+
+/* 复述 / 复盘里被遮住的回答 */
+.replay-item.is-masked .replay-a,
+.tl-a.is-masked {
+  color: #6b5a34;
+  font-style: normal;
+  font-weight: 600;
+  border-left: 2px dashed rgba(169, 130, 47, 0.7);
+  padding-left: 8px;
+}
+
+.replay-item.is-masked {
+  border-color: rgba(169, 130, 47, 0.4);
+}
+
+/* ---------------- 第 5 周第四批：公开问答的问题也改成浅底深字 ---------------- */
+
+.feed-item.thread {
+  padding: 8px;
+  background: rgba(255, 246, 224, 0.07);
+  border-left: 2px solid rgba(201, 160, 68, 0.95);
+}
+
+.feed-q {
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #f7efdd;
+  color: #23202a;
+  font-size: 13.5px;
+  line-height: 1.65;
+  font-weight: 500;
+}
+
+.feed-q b {
+  color: #7a4a12;
+  font-weight: 800;
+}
+
+.feed-q .feed-text {
+  color: #1f1b16;
+  font-weight: 600;
+}

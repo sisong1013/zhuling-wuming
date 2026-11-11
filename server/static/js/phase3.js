@@ -8,19 +8,41 @@ export function renderPhase3(root, state, { send }) {
   const confirmed = state.progress?.confirmed ?? 0;
   const total = state.progress?.total ?? state.count;
 
-  const rows = items.length
-    ? items
-        .map(
-          (item) => `
-      <li class="replay-item ${item.status === "TIMEOUT" ? "is-timeout" : ""}">
+  // 服务端给的是「问题条目 + 回答条目」两条，这里按 questionId 配对成一行
+  const threads = [];
+  for (const item of items) {
+    let thread = threads.find((t) => t.questionId === item.questionId);
+    if (!thread) {
+      thread = { questionId: item.questionId };
+      threads.push(thread);
+    }
+    if (item.kind === "answer") thread.answer = item;
+    else thread.question = item;
+  }
+
+  const answerLine = (ans) => {
+    if (!ans) return "（待答）";
+    if (ans.timedOut) return "（超时未答）";
+    if (ans.masked) return "🔒 已作答（内容仅当事人可见）";
+    return esc(ans.answer || "");
+  };
+
+  const rows = threads.length
+    ? threads
+        .map((thread) => {
+          const q = thread.question || {};
+          const ans = thread.answer;
+          const timeout = ans && ans.timedOut;
+          const target = q.targetNo != null ? `#${q.targetNo}` : esc(q.targetNickname || "?");
+          return `
+      <li class="replay-item ${timeout ? "is-timeout" : ""} ${ans && ans.masked ? "is-masked" : ""}">
         <p class="replay-who">
-          <b>${esc(item.askerNickname)}</b> →
-          <b>${esc(item.targetNickname)}</b>
+          <b>${esc(q.askerNickname || "?")}</b> 问 <b>${target}</b>
         </p>
-        <p class="replay-q">${esc(item.question)}</p>
-        <p class="replay-a">${item.status === "TIMEOUT" ? "（超时未答）" : esc(item.answer || "")}</p>
-      </li>`
-        )
+        <p class="replay-q">${esc(q.text || "")}</p>
+        <p class="replay-a">${answerLine(ans)}</p>
+      </li>`;
+        })
         .join("")
     : `<li class="replay-item"><p class="replay-a">本轮没有人提问。</p></li>`;
 

@@ -490,7 +490,15 @@ class GameRegistry:
         payload["timeline"] = rules.build_timeline(room, winner_id)
         payload["stats"] = self.game_stats(room)
 
-        await self.broadcast(room, payload)
+        # timeline 里可能引用了半公开/私密问答，按人裁剪后分别下发
+        for viewer in room.ordered_players():
+            if not viewer.connected:
+                continue
+            personalized = dict(payload)
+            personalized["timeline"] = rules.build_timeline(
+                room, winner_id, viewer_id=viewer.id
+            )
+            await self.hub.send(viewer.id, personalized)
         await self.broadcast_state(room)
 
         # 结束后保留一段时间可复盘，然后回收房间
@@ -743,15 +751,23 @@ class GameRegistry:
         room.phase2_active = {}
         room.deadline = time.time() + room.config.phase3_seconds
         items = rules.build_replay_items(room)
-        room.replay = items
+        room.replay = items  # 服务端留档用全量，实际下发的按人裁剪
 
         auto_confirmed: list[str] = [
             p.id for p in room.ordered_players() if p.confirmed_round == room.round
         ]
 
-        await self.broadcast(
-            room, {"type": "phase3:replay", "round": room.round, "items": items}
-        )
+        for viewer in room.ordered_players():
+            if not viewer.connected:
+                continue
+            await self.hub.send(
+                viewer.id,
+                {
+                    "type": "phase3:replay",
+                    "round": room.round,
+                    "items": rules.build_replay_items(room, viewer_id=viewer.id),
+                },
+            )
         await self.broadcast(
             room,
             {

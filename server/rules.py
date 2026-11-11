@@ -298,10 +298,18 @@ def clip_text(
 # ----------------------------------------------------------------------
 # 回放条目
 # ----------------------------------------------------------------------
-def build_replay_items(room: Room, round_no: int | None = None) -> list[dict[str, Any]]:
-    """构建本轮回放条目：每条提问 + 它的回答（已回答 / 超时）。"""
+def build_replay_items(
+    room: Room, round_no: int | None = None, viewer_id: str | None = None
+) -> list[dict[str, Any]]:
+    """构建本轮回放条目：每条提问 + 它的回答（已回答 / 超时）。
+
+    按 viewer_id 裁剪：私密问答对旁观者整条隐藏；半公开的回答对旁观者只留「已作答」。
+    """
     items: list[dict[str, Any]] = []
     for q in room.round_questions(round_no):
+        party = viewer_id is None or viewer_id in (q.asker_id, q.target_id)
+        if q.visibility is Visibility.PRIVATE and not party:
+            continue
         asker = room.player(q.asker_id)
         target = room.player(q.target_id)
         items.append(
@@ -313,9 +321,16 @@ def build_replay_items(room: Room, round_no: int | None = None) -> list[dict[str
                 "targetId": q.target_id,
                 "targetNickname": target.nickname if target else "?",
                 "text": clip_text(
-                    q.visibility, q.text, asker_id=q.asker_id, target_id=q.target_id, viewer_id=None
+                    q.visibility,
+                    q.text,
+                    asker_id=q.asker_id,
+                    target_id=q.target_id,
+                    viewer_id=viewer_id,
+                    kind="question",
                 ),
+                "targetNo": target.room_no if target else None,
                 "status": q.status.value,
+                "visibility": q.visibility.value,
             }
         )
         if q.status is not QuestionStatus.PENDING:
@@ -330,7 +345,13 @@ def build_replay_items(room: Room, round_no: int | None = None) -> list[dict[str
                         q.answer,
                         asker_id=q.asker_id,
                         target_id=q.target_id,
-                        viewer_id=None,
+                        viewer_id=viewer_id,
+                        kind="answer",
+                    ),
+                    "masked": (
+                        q.visibility is Visibility.SEMI
+                        and not party
+                        and q.answer is not None
                     ),
                     "timedOut": q.status is QuestionStatus.TIMEOUT,
                 }
@@ -409,7 +430,9 @@ HIGHLIGHT_LABELS = {
 }
 
 
-def build_timeline(room: "Room", winner_id: str | None = None) -> list[dict[str, Any]]:
+def build_timeline(
+    room: "Room", winner_id: str | None = None, viewer_id: str | None = None
+) -> list[dict[str, Any]]:
     """把整局的公开问答整理成时间线（含高亮标记），用于谢幕复盘。
 
     高亮规则（全部基于事实，不做语义猜测）：
@@ -436,6 +459,9 @@ def build_timeline(room: "Room", winner_id: str | None = None) -> list[dict[str,
         longest_id = max(answered, key=lambda q: len(q.answer or "")).id if answered else None
 
         for q in questions:
+            party = viewer_id is None or viewer_id in (q.asker_id, q.target_id)
+            if q.visibility is Visibility.PRIVATE and not party:
+                continue
             asker = room.player(q.asker_id)
             target = room.player(q.target_id)
             tags: list[str] = []
@@ -462,6 +488,13 @@ def build_timeline(room: "Room", winner_id: str | None = None) -> list[dict[str,
                 if guessed and _answer_matches(room, guessed, target):
                     tags.append("sharp")
 
+            # 答案相关的高亮（自曝 / 最长回答）对非当事人没有意义，也会泄露内容
+            if not party:
+                tags = [t for t in tags if t not in ("self_reveal", "longest")]
+            masked = (
+                q.visibility is Visibility.SEMI and not party and q.answer is not None
+            )
+
             items.append(
                 {
                     "questionId": q.id,
@@ -470,8 +503,24 @@ def build_timeline(room: "Room", winner_id: str | None = None) -> list[dict[str,
                     "askerId": q.asker_id,
                     "targetNo": target.room_no if target else None,
                     "targetNickname": target.nickname if target else "?",
-                    "question": q.text,
-                    "answer": q.answer,
+                    "visibility": q.visibility.value,
+                    "question": clip_text(
+                        q.visibility,
+                        q.text,
+                        asker_id=q.asker_id,
+                        target_id=q.target_id,
+                        viewer_id=viewer_id,
+                        kind="question",
+                    ),
+                    "answer": clip_text(
+                        q.visibility,
+                        q.answer,
+                        asker_id=q.asker_id,
+                        target_id=q.target_id,
+                        viewer_id=viewer_id,
+                        kind="answer",
+                    ),
+                    "masked": masked,
                     "status": q.status.value,
                     "timedOut": q.status is QuestionStatus.TIMEOUT,
                     "highlights": tags,

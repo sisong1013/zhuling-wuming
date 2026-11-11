@@ -182,13 +182,32 @@ function renderFeed() {
   if (!list) return;
   list.innerHTML = (state.feed || [])
     .slice(-40)
-    .map(
-      (item) =>
-        `<li class="feed-item ${esc(item.kind || "a")}"><span class="feed-text">${esc(
-          item.text
-        )}</span></li>`
-    )
+    .map((item) => renderFeedItem(item))
     .join("");
+}
+
+/** 一条问答线程：上面问题、下面缩进的回答（带折线连接感） */
+function renderFeedItem(item) {
+  if (item && item.kind === "thread") {
+    const target = item.targetNo != null ? `${item.targetNo} 号` : "？号";
+    const iAmAsker = item.asker && state.you && item.asker === state.you.nickname;
+    const asker = iAmAsker ? "你" : esc(item.asker || "？");
+    const who = item.toMe ? "你" : target; // 回答挂在被问的人名下
+    const answerLine = item.timedOut
+      ? `<div class="feed-a is-timeout">${who} 超时未答（TIMEOUT）</div>`
+      : item.answer
+      ? `<div class="feed-a"><b>${who}答：</b>${esc(item.answer)}</div>`
+      : `<div class="feed-a is-pending">${who} 待答…</div>`;
+    return `<li class="feed-item thread" data-qid="${esc(item.questionId || "")}">
+      <div class="feed-q"><b>${asker}</b> 问 <b>${target}</b>：<span class="feed-text">${esc(
+      item.text
+    )}</span></div>
+      ${answerLine}
+    </li>`;
+  }
+  return `<li class="feed-item ${esc(item.kind || "a")}"><span class="feed-text">${esc(
+    item.text
+  )}</span></li>`;
   list.scrollTop = list.scrollHeight;
 }
 

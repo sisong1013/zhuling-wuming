@@ -1,6 +1,6 @@
 /* board.js —— 观众板抽屉：编号 → 真人 / 卡名，草稿与呈交 */
 
-import { esc, raw, toast } from "./ui.js";
+import { esc, toast } from "./ui.js";
 
 const PERSONA = "PERSONA";
 
@@ -23,18 +23,13 @@ export function renderBoard(root, state, { send }) {
       const options = [`<option value="">待猜</option>`]
         .concat(choices.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`))
         .join("");
-      return raw(`
+      return `
         <div class="board-cell ${own ? "is-locked" : ""}">
-          <span class="no">#${no}</span>
-          ${
-            own
-              ? `<span class="lock">本人</span>`
-              : ""
-          }
+          <span class="no">${no} 号${own ? '<span class="lock">本人</span>' : ""}</span>
           <select data-no="${no}" ${own ? "disabled" : ""} aria-label="编号 ${no} 对应谁">
             ${own ? `<option value="${esc(mine)}" selected>${esc(mine)}</option>` : options}
           </select>
-        </div>`);
+        </div>`;
     })
     .join("");
 
@@ -52,6 +47,7 @@ export function renderBoard(root, state, { send }) {
       <button class="btn" data-draft ${state.phase === "PHASE1" ? "" : "disabled"}>记入草稿</button>
       <button class="btn primary" data-submit ${canSubmit ? "" : "disabled"}>呈上看板</button>
     </div>
+    <p class="board-progress" data-progress></p>
     <p class="hint">${
       cooldown > 0
         ? `冷却中（剩 ${cooldown} 轮），本轮只能提问或略过`
@@ -62,13 +58,29 @@ export function renderBoard(root, state, { send }) {
         : "自己那格是白送的（你当然知道自己的编号）"
     }</p>`;
 
+  const refreshProgress = () => {
+    const selects = [...root.querySelectorAll("select[data-no]")].filter((x) => !x.disabled);
+    const filled = selects.filter((x) => x.value).length;
+    const box = root.querySelector("[data-progress]");
+    if (box) {
+      box.textContent = filled
+        ? `已选 ${filled}/${selects.length} 格 · 可以呈上了`
+        : `还没选任何一格（点下拉选人/选卡）`;
+    }
+  };
+
   for (const sel of root.querySelectorAll("select[data-no]")) {
     sel.addEventListener("change", () => {
       state.board[String(sel.dataset.no)] = sel.value;
       sel.classList.toggle("is-empty", !sel.value);
+      sel.closest(".board-cell")?.classList.toggle("is-picked", !!sel.value);
+      refreshProgress();
     });
     sel.classList.toggle("is-empty", !sel.value && !sel.disabled);
+    const cell = sel.closest(".board-cell");
+    if (cell) cell.classList.toggle("is-picked", !!sel.value && !sel.disabled);
   }
+  refreshProgress();
 
   root.querySelector("[data-close]")?.addEventListener("click", () => toggleBoard(false));
   root.querySelector("[data-draft]")?.addEventListener("click", () => {
@@ -78,7 +90,7 @@ export function renderBoard(root, state, { send }) {
   });
   root.querySelector("[data-submit]")?.addEventListener("click", () => {
     const board = collect(root);
-    if (!Object.keys(board).length) return toast("看板还空着", "error");
+    if (!Object.keys(board).length) return toast("看板还空着：先在上面挑几格", "error");
     send("phase1:submit", { board });
   });
 }

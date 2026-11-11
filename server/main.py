@@ -102,7 +102,20 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="桌上剧团 · 诸伶无名", version="0.1.0", lifespan=lifespan)
 
 # 静态资源（原生 HTML + CSS + ES Module，不用任何前端框架）
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+class NoCacheStatic(StaticFiles):
+    """静态资源每次都向服务端确认（ETag 变就重新拉）。
+
+    没这一条的话，浏览器会按启发式缓存直接用旧 JS，改完前端要用户手动强刷，
+    线上修 bug 时特别误导。
+    """
+
+    async def get_response(self, path: str, scope):  # type: ignore[override]
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
+
+
+app.mount("/static", NoCacheStatic(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/")

@@ -774,3 +774,87 @@ select.is-empty {
   color: rgba(203, 178, 127, 0.62);
   text-transform: uppercase;
 }
+
+/* ---------------- 第 5 周修补：问答成对排版 / 对比度 / 观众板可点 ---------------- */
+
+/* ① 问答线程：上面问题，下面用折线挂着的回答 */
+.feed-item.thread {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border-left: 2px solid rgba(201, 160, 68, 0.95);
+  background: linear-gradient(180deg, rgba(255, 246, 224, 0.09), rgba(255, 246, 224, 0.045));
+  color: #f6eddb;
+}
+.feed-q { font-size: 13.5px; line-height: 1.65; color: #f6eddb; }
+.feed-q b { color: #f5dfa8; font-weight: 700; letter-spacing: 0.3px; }
+.feed-q .feed-text { color: #fffdf7; }
+.feed-a {
+  position: relative;
+  margin: 7px 0 0 16px;
+  padding-left: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #ffeccd;
+}
+.feed-a::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: -8px;
+  width: 12px;
+  height: 16px;
+  border-left: 1.5px solid rgba(217, 181, 107, 0.62);
+  border-bottom: 1.5px solid rgba(217, 181, 107, 0.62);
+  border-bottom-left-radius: 8px;
+}
+.feed-a b { color: #f2dfae; font-weight: 700; }
+.feed-a.is-pending { color: #c3b49b; font-style: italic; }
+.feed-a.is-timeout { color: #ffb4aa; }
+
+/* ② 对比度：问题/正文都比原来亮一档 */
+.feed-item .feed-text, .feed-item { color: #efe6d7; }
+.question-box {
+  border-color: rgba(217, 181, 107, 0.5);
+  background: linear-gradient(180deg, rgba(255, 246, 224, 0.12), rgba(255, 246, 224, 0.06));
+}
+.question-box .label { color: #f0d79f; letter-spacing: 1px; }
+.question-text {
+  color: #fffdf7;
+  font-size: 16.5px;
+  line-height: 1.7;
+  font-weight: 600;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+.question-box.waiting .question-text { color: #e6dcc9; font-weight: 500; }
+.field input, .field textarea, .field select,
+#ask-text, #answer-text, #card-name, #card-content, #nickname, #room-code { color: #23202a; }
+
+/* ③ 观众板：格子更大、下拉可选、本人格高亮 */
+.drawer .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.board-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(217, 181, 107, 0.35);
+  background: rgba(255, 246, 224, 0.07);
+}
+.board-cell .no { font-size: 12.5px; letter-spacing: 1.5px; color: #f2dfae; display: flex; align-items: center; gap: 8px; }
+.board-cell .lock {
+  font-size: 11px; padding: 1px 7px; border-radius: 99px;
+  color: #2a2114; background: linear-gradient(180deg, #fbeec4, #d9b56b);
+}
+.board-cell.is-locked { border-color: rgba(217, 181, 107, 0.6); background: rgba(217, 181, 107, 0.14); }
+.board-cell select {
+  width: 100%; min-height: 44px; padding: 0 10px; font-size: 14.5px;
+  color: #232029; border-radius: 9px;
+  border: 1px solid rgba(217, 181, 107, 0.55);
+  background: #f7efdd;
+}
+.board-cell select:focus { outline: none; box-shadow: 0 0 0 3px rgba(217, 181, 107, 0.35); }
+.board-cell select option { color: #232029; background: #f7efdd; }
+.board-cell select.is-empty { color: #7d7266; }
+.board-cell.is-picked { border-color: #d9b56b; box-shadow: 0 0 0 2px rgba(217, 181, 107, 0.28); }
+.drawer .row-actions { margin-top: 14px; }
+.drawer .board-progress { margin: 10px 0 0; font-size: 12.5px; letter-spacing: 1px; color: #e2cf9f; }

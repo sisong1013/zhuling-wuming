@@ -332,6 +332,7 @@ def question_public_payload(room: Room, q: Question) -> dict[str, Any]:
         "askerNickname": asker.nickname if asker else "?",
         "targetId": q.target_id,
         "targetNickname": target.nickname if target else "?",
+        "targetNo": target.room_no if target else None,  # 被问的是几号（公开信息）
         "text": clip_text(
             q.visibility, q.text, asker_id=q.asker_id, target_id=q.target_id, viewer_id=None
         ),
@@ -349,6 +350,7 @@ def answer_public_payload(room: Room, q: Question) -> dict[str, Any]:
         "round": q.round,
         "targetId": q.target_id,
         "targetNickname": target.nickname if target else "?",
+        "targetNo": target.room_no if target else None,
         "answer": clip_text(
             q.visibility, q.answer, asker_id=q.asker_id, target_id=q.target_id, viewer_id=None
         ),

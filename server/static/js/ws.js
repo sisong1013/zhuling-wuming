@@ -268,23 +268,35 @@ function receive(msg) {
       deadline: msg.deadline,
       queuePosition: msg.queuePosition,
     };
-    pushFeed({ kind: "q", text: `${msg.askerNickname} 问你：${msg.text}` });
+    upsertThread(msg.questionId, {
+      asker: msg.askerNickname,
+      targetNo: state.myRoomNo,
+      text: msg.text,
+      status: "PENDING",
+      toMe: true, // 这是「别人问我」，不是我在问
+    });
     emit("state", state);
     return;
   }
 
   if (type === "answer:public") {
-    pushFeed({
-      kind: msg.timedOut ? "timeout" : "a",
-      text: msg.timedOut
-        ? `${msg.targetNickname} 超时未答（TIMEOUT）`
-        : `${msg.targetNickname} 答：${msg.answer}`,
+    upsertThread(msg.questionId, {
+      answer: msg.timedOut ? null : msg.answer,
+      timedOut: !!msg.timedOut,
+      answerNo: msg.targetNo ?? null,
+      status: msg.status,
     });
     return;
   }
 
   if (type === "question:public") {
-    pushFeed({ kind: "q", text: `${msg.askerNickname} 问 ${msg.targetNo ?? "?"} 号：${msg.text}` });
+    upsertThread(msg.questionId, {
+      asker: msg.askerNickname,
+      targetNo: msg.targetNo ?? null,
+      text: msg.text,
+      status: msg.status,
+      mine: false,
+    });
     return;
   }
 
@@ -375,7 +387,19 @@ function applySnapshot(snap) {
   if (snap.currentQuestion) state.currentQuestion = snap.currentQuestion;
 }
 
-export function pushFeed(item) {
+export /** 问答线程：同一个 questionId 的问题与回答合并成一条，渲染时成对显示 */
+function upsertThread(questionId, patch) {
+  if (!questionId) return;
+  let item = (state.feed || []).find((x) => x && x.questionId === questionId);
+  if (!item) {
+    item = { kind: "thread", questionId };
+    state.feed.push(item);
+  }
+  Object.assign(item, patch);
+  emit("feed", state.feed);
+}
+
+function pushFeed(item) {
   state.feed.push(item);
   if (state.feed.length > 150) state.feed.shift();
   emit("feed", state.feed);

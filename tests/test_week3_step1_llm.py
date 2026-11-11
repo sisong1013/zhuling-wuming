@@ -6,7 +6,16 @@ import asyncio
 
 import pytest
 
+import pytest
+
 from server import llm_client
+
+
+@pytest.fixture(autouse=True)
+def _allow_llm_in_this_module(monkeypatch):
+    """CI 的 job env 里带着 LLM_DISABLE=1（防真调用）；本模块已 monkeypatch，
+    不会真的发请求，所以这里把它解开，测的是降级/解析逻辑。"""
+    monkeypatch.delenv("LLM_DISABLE", raising=False)
 
 
 @pytest.fixture(autouse=True)
@@ -121,5 +130,6 @@ def test_dotenv_candidates_point_to_game_root():
 
     first = main.ENV_CANDIDATES[0]
     assert first.name == ".env"
-    assert first.parent.name == "game"
     assert first.parent == main.GAME_ROOT
+    # 仓库目录在 CI 里叫别的名字（zhuling-wuming），所以判断「这里有服务代码」而不是目录名
+    assert (first.parent / "server" / "main.py").is_file()

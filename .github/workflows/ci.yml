@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write  # 失败时要把日志推到 ci-log 分支
+
 jobs:
   pytest:
     runs-on: ubuntu-latest

@@ -146,6 +146,7 @@ async def test_reasoning_round_without_llm(monkeypatch):
 # 模型降级链
 # ----------------------------------------------------------------------
 async def test_model_fallback_chain(monkeypatch):
+    monkeypatch.delenv("LLM_DISABLE", raising=False)  # CI 的 job env 里带着它
     monkeypatch.setenv("LLM_API_KEY", "sk-test")
     monkeypatch.setenv("LLM_MODEL", "primary-model")
     monkeypatch.setenv("LLM_MODEL_FALLBACKS", "backup-a, backup-b")
@@ -167,6 +168,7 @@ async def test_model_fallback_chain(monkeypatch):
 
 
 async def test_all_models_fail_falls_back_to_empty(monkeypatch):
+    monkeypatch.delenv("LLM_DISABLE", raising=False)
     monkeypatch.setenv("LLM_API_KEY", "sk-test")
     monkeypatch.setenv("LLM_MODEL", "only-model")
     monkeypatch.delenv("LLM_MODEL_FALLBACKS", raising=False)
